@@ -4,11 +4,13 @@
 #include <cwctype>
 #include <charconv>
 
-#include "Concepts.h"
+#include "common.h"
 
 
 template<ConceptCharType CharType>
 int ScanStringForInteger(const CharType *ptr_to_string, const CharType *ptr_to_string_end);
+
+
 
 template<>
 int ScanStringForInteger<char>(const char *const ptr_to_string, const char *const ptr_to_string_end)
@@ -102,6 +104,7 @@ bool ScanStringForLiteralString(const CharType *ptr_to_string, const CharType *p
 template<>
 bool ScanStringForLiteralString<char>(const char *ptr_to_string, const char *ptr_to_string_end, const char *ptr_string_to_find)
 {
+	int i = strncmp(ptr_to_string, ptr_string_to_find, strlen(ptr_string_to_find));
 	return strncmp(ptr_to_string, ptr_string_to_find, strlen(ptr_string_to_find)) == 0;
 }
 

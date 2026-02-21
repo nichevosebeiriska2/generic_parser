@@ -18,17 +18,13 @@ namespace Parsers
 	using _string = Parser<Scanners::scanner_string_alnum, std::basic_string<CharType>>;
 
 	template<ConceptCharType CharType>
-	using _char = ParserLiteral<CharType, Scanners::scanner_string_alnum, std::basic_string<CharType>>;
+	using _char = Parser<Scanners::scanner_string_alnum, std::basic_string<CharType>>;
 
-	//template<ConceptCharType CharType>
-	//using _string_lit = omited<ParserLiteral<CharType, Scanners::scanner_string_literal, std::basic_string<CharType>>>;
-
-	//template<ConceptCharType CharType>
-	//using _char_lit = omited<ParserLiteral<CharType, Scanners::scanner_symbol, CharType>>;
-
-	//template<ConceptCharType CharType>
-	//omited(CharType symbol) -> omited<ParserLiteral<CharType, Scanners::scanner_symbol, CharType>>;
-
-	//template<ConceptCharType CharType>
-	//omited(const CharType *string_literal) -> omited<ParserLiteral<CharType, Scanners::scanner_string_literal, std::basic_string<CharType>>>;
+	template<ConceptCharType CharType>
+	using _string_lit = ParserLiteral<CharType>;
 };
+
+namespace Skippers
+{
+	inline auto space = Parsers::_string_lit{ std::string_view{" "} };
+}

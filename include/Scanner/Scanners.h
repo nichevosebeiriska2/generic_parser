@@ -2,7 +2,7 @@
 
 #include <limits>
 
-#include "Concepts.h"
+#include "common.h"
 #include "Constants.h"
 #include "ScanningFunctions.h"
 
@@ -76,7 +76,10 @@ public:
 
 	bool Scan(const TInterface::internal_char_type *ptr_to_string, const TInterface::internal_char_type *ptr_to_string_end)
 	{
-		return ScanStringForLiteralString(ptr_to_string, ptr_to_string_end, literal.data()) ?  (TInterface::number_of_scanned_chars = literal.size()) : 0;
+		bool parsed = ScanStringForLiteralString(ptr_to_string, ptr_to_string_end, literal.data());
+		TInterface::number_of_scanned_chars = parsed ? literal.length() : 0;
+
+		return parsed;
 	}
 };
 
