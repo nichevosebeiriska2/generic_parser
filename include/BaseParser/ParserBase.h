@@ -5,7 +5,7 @@
 
 namespace Parsers
 {
-
+	
 /*
 	Each parser should have Parse() and Scan() functions for both common and no-result parsing (in case parser tagged as omitted)
 */
@@ -29,6 +29,7 @@ public:
 
 protected:
 	parsing_attribute m_result;
+	
 
 protected:
 		auto ParseFromPointers(const auto *ptr_string, const auto *ptr_string_end)
@@ -158,7 +159,7 @@ protected:
 		bool Scan(const CharType *&ptr_string, const CharType *&ptr_string_end, TParserSkipper &skipper)
 		{
 			UseSkipper(ptr_string, ptr_string_end, skipper);
-			return scan(ptr_string, ptr_string_end);
+			return Scan(ptr_string, ptr_string_end);
 		}
 
 		template<ConceptCharType CharType>

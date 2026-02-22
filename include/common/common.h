@@ -8,6 +8,9 @@ using INT  = int32_t;
 template<typename T>
 concept ConceptCharType = std::is_same_v<T, char> || std::is_same_v<T, wchar_t>;
 
+template<ConceptCharType CharType>
+using constCharPtrRef = const CharType*&; // use it to declare const ptr reference to underlying char type in template Parse()/Scan() functions. 
+
 template<typename T, typename CharType>
 concept ConceptHasParseFunction = requires(T && t, const CharType* ptr)
 {

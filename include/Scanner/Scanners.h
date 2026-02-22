@@ -81,6 +81,11 @@ public:
 
 		return parsed;
 	}
+
+	constexpr std::basic_string_view<CharType> GetLiteral() noexcept
+	{
+		return literal;
+	}
 };
 
 template<ConceptCharType CharType>
