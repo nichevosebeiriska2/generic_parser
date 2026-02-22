@@ -18,7 +18,7 @@ namespace Parsers
 	using _string = Parser<Scanners::scanner_string_alnum, std::basic_string<CharType>>;
 
 	template<ConceptCharType CharType>
-	using _char = Parser<Scanners::scanner_string_alnum, std::basic_string<CharType>>;
+	using _char = Parser<Scanners::scanner_string_alnum, CharType>;
 
 	template<ConceptCharType CharType>
 	using _string_lit = ParserLiteral<CharType>;

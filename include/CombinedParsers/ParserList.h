@@ -8,7 +8,6 @@
 namespace Parsers
 {
 	template<ConceptParser TParser, ConceptParser TParserDelimiter >
-
 	class list
 	{
 
@@ -81,7 +80,8 @@ namespace Parsers
 			return m_vector_result.size() == m_num_of_elements_to_parse;
 		}
 	public:
-		list(TParser && p, TParserDelimiter && pd, UINT num_of_elements_to_parse = CONST_NUMBER_OF_CHARS_AT_LEAST_ONE)
+		template<typename P, typename D>
+		list(P && p, D && pd, UINT num_of_elements_to_parse = CONST_NUMBER_OF_CHARS_AT_LEAST_ONE)
 			: m_parser{p}
 			, m_parser_delimiter{pd}
 			, m_num_of_elements_to_parse{num_of_elements_to_parse}	// for cases we want parse a non-fixed number of arguments use constants
@@ -113,4 +113,10 @@ namespace Parsers
 		}
 
 	};
+
+	template<typename TParser, typename TDelimiter>
+	list(TParser parser, TDelimiter delimiter) -> list<TParser, TDelimiter>;
+
+	template<typename TParser, typename TDelimiter>
+	list(TParser parser, TDelimiter delimiter, int N) -> list<TParser, TDelimiter>;
 }

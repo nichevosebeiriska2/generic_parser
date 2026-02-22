@@ -14,8 +14,8 @@ namespace Parsers
 	template<typename ... Parsers >
 	class sequential
 	{
-		static_assert(sizeof...(Parsers) > 1, "sequential<Parsers...>:: <Parsers...> template packet size must be greater than '1'");
-		static_assert((ConceptParser<Parsers> && ...), "sequential::sequential(Parsers...parsers):: each parser should meet ConceptBaseParser requirements");
+		//static_assert(sizeof...(Parsers) > 1 || (sizeof...(Parsers) == 1 && ), "sequential<Parsers...>:: <Parsers...> template packet size must be greater than '1'");
+		static_assert((ConceptParser<Parsers> && ...), "sequential::sequential(Parsers...parsers):: each parser should meet ConceptParser requirements");
 	
 	public:
 		std::tuple<Parsers...> tuple_parsers;
@@ -25,6 +25,24 @@ namespace Parsers
 		auto UseParser(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, SkipperType & skipper)
 		{
 			return std::get<index>(tuple_parsers).Parse(ptr_string, ptr_string_end, skipper);
+		}
+
+		template<ConceptCharType CharType, size_t index>
+		auto UseParser(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
+		{
+			return std::get<index>(tuple_parsers).Parse(ptr_string, ptr_string_end);
+		}
+
+		template<ConceptCharType CharType, ConceptParser SkipperType, size_t index>
+		auto UseParserAsScanner(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, SkipperType& skipper)
+		{
+			return std::get<index>(tuple_parsers).Scan(ptr_string, ptr_string_end, skipper);
+		}
+
+		template<ConceptCharType CharType, size_t index>
+		auto UseParserAsScanner(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
+		{
+			return std::get<index>(tuple_parsers).Scan(ptr_string, ptr_string_end);
 		}
 
 		template<int index>
@@ -89,6 +107,31 @@ namespace Parsers
 			return parsed;
 		}
 
+		template<ConceptCharType CharType, size_t ... Ts>
+		auto ParseImpl(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, const std::index_sequence<Ts...>& seq)
+		{
+			decltype(EvaluateResultType(seq)) tup_temp{};
+
+			auto parsed = (ParseSingleParser<CharType, Ts>(tup_temp, ptr_string, ptr_string_end) && ...);
+
+			if (parsed)
+				m_result = tuple_utils::TupleDeleteParamsOfRequiredType<tag_attribute_unused>(tup_temp);
+
+			return parsed;
+		}
+
+		template<ConceptCharType CharType, ConceptParser SkipperType, size_t ... Ts>
+		auto ScanImpl(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, SkipperType& skipper, const std::index_sequence<Ts...>& seq)
+		{
+			return (UseParserAsScanner<CharType, SkipperType, Ts>(ptr_string, ptr_string_end, skipper) && ...);
+		}
+
+		template<ConceptCharType CharType, size_t ... Ts>
+		auto ScanImpl(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, const std::index_sequence<Ts...>& seq)
+		{
+			return (UseParserAsScanner<CharType, Ts>(ptr_string, ptr_string_end) && ...);
+		}
+
 	public:
 		using parsing_attribute = decltype(EvaluateResultType2());
 
@@ -134,17 +177,27 @@ namespace Parsers
 		}
 
 		template<ConceptCharType CharType, ConceptParser SkipperType>
-		auto Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, SkipperType & context)
+		auto Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, SkipperType & skipper)
 		{
-			return ParseImpl(ptr_string, ptr_string_end, context, std::make_index_sequence<std::tuple_size_v<decltype(tuple_parsers)>>{});
+			return ParseImpl(ptr_string, ptr_string_end, skipper, std::make_index_sequence<std::tuple_size_v<decltype(tuple_parsers)>>{});
 		}
 
 		template<ConceptCharType CharType, ConceptParser SkipperType>
-		auto Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, SkipperType& context)
+		auto Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
 		{
-			static_assert(false, "Not implemented yet!");
-			//return ParseImpl(ptr_string, ptr_string_end, context, std::make_index_sequence<std::tuple_size_v<decltype(tuple_parsers)>>{});
-			return false;
+			return ParseImpl(ptr_string, ptr_string_end, std::make_index_sequence<std::tuple_size_v<decltype(tuple_parsers)>>{});
+		}
+
+		template<ConceptCharType CharType, ConceptParser SkipperType>
+		auto Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, SkipperType& skipper)
+		{
+			return ScanImpl(ptr_string, ptr_string_end, skipper, std::make_index_sequence<std::tuple_size_v<decltype(tuple_parsers)>>{});
+		}
+
+		template<ConceptCharType CharType>
+		auto Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
+		{
+			return ScanImpl(ptr_string, ptr_string_end, std::make_index_sequence<std::tuple_size_v<decltype(tuple_parsers)>>{});
 		}
 
 		auto GetValueAndReset()
@@ -158,5 +211,22 @@ namespace Parsers
 		}
 	};
 
+	template<typename TLeft, typename TRight>
+	sequential(TLeft left, TRight right) -> sequential<TLeft, TRight>;
+
+	template<typename... SeqTypes, typename TRight>
+	sequential(sequential<SeqTypes...> seq, TRight right) -> sequential<SeqTypes..., TRight>;
+
+	template<typename TLeft, typename... SeqTypes>
+	sequential(TLeft left, sequential<SeqTypes...> seq) -> sequential<TLeft, SeqTypes...>;
+
+	template<typename... SeqTypesLeft, typename... SeqTypesRight>
+	sequential(sequential<SeqTypesLeft...> seq_left, sequential<SeqTypesRight...> seq_right) -> sequential<SeqTypesLeft..., SeqTypesRight...>;
+
+	template<typename T>
+	struct is_sequential : std::false_type{};
+
+	template<typename... Parsers>
+	struct is_sequential<sequential<Parsers...>> : std::true_type{};
 
 }

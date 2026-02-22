@@ -46,6 +46,12 @@ namespace tuple_utils
 			return std::make_tuple(std::forward<T>(t));
 	}
 
+	template<typename ... Args>
+	constexpr auto concat_as_tuple(Args ... args)
+	{
+		return std::tuple_cat(as_tuple(args) ...);
+	}
+
 	template<typename TRequiredToDelete, typename ... T>
 	auto TupleDeleteParamsOfRequiredType(std::tuple<T...> &tup_results)
 	{

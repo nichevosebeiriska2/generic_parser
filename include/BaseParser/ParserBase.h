@@ -28,7 +28,7 @@ public:
 	using parsing_attribute = TResult;
 
 protected:
-	parsing_attribute m_result;
+	parsing_attribute m_result{};
 	
 
 protected:

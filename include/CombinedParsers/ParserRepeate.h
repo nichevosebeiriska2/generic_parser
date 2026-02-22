@@ -14,7 +14,6 @@ template<typename TParser>
 class repeate
 {
 public:
-	using internal_char_type = TParser::internal_char_type;
 	using parsing_attribute = std::vector<typename TParser::parsing_attribute>;
 
 protected:
