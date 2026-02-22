@@ -50,8 +50,9 @@ namespace Parsers
 		}
 
 		template<ConceptCharType CharType, ConceptParser SkipperParserType>
-		auto Parse(const CharType*& ptr_string, const CharType*& ptr_string_end, SkipperParserType&& skipper) // its actually a scan function of internal parser. We`ll call it 'Parse()' for consistency of classes usage contract
+		auto Parse(const CharType*& ptr_string, const CharType*& ptr_string_end, SkipperParserType&& skipper) 
 		{
+			// its actually a scan function of internal parser. We`ll call it 'Parse()' for consistency of classes usage contract
 			return m_parser.Scan(ptr_string, ptr_string_end, skipper);
 		}
 
