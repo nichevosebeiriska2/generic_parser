@@ -7,15 +7,35 @@ namespace Parsers{
 template<ConceptParser ParserType, typename ActionType>
 class ParserWrapperWithAction
 {
-	static_assert(!is_unused_type_v<ParserType::parsing_attribute>, "ParserWrapperWithAction : underlying parser type cant be omited!");
+	void f()
+	{
+		using t = lambda_traits<ActionType>::has_arguments;
+	}
+	consteval static auto DeduceNewParsingAttribute()
+	{
 
+		if constexpr (ParserType::IsOmited())
+		{
+			static_assert(std::is_invocable_v<ActionType>
+				, "ParserWrapperWithAction::DeduceNewParsingAttribute() : action cant be invoked with no arguments");
+
+			return std::invoke_result_t < ActionType>{};
+		}
+		else
+		{
+			static_assert(std::is_invocable_v<ActionType, decltype(std::declval<ParserType>().GetValueAndReset())>
+				, "ParserWrapperWithAction::DeduceNewParsingAttribute() : action cant be invoked with ParserType return type");
+			return std::invoke_result_t<ActionType, decltype(std::declval<ParserType>().GetValueAndReset())>{};
+		}
+
+	}
 
 protected:
 	ParserType m_parser;
 	ActionType m_action;
 
 public:
-	using parsing_attribute = std::invoke_result_t<ActionType, decltype(std::declval<ParserType>().GetValueAndReset())>;
+	using parsing_attribute = decltype(DeduceNewParsingAttribute());
 
 public:
 	ParserWrapperWithAction(auto&& parser, auto&& action)
@@ -51,12 +71,21 @@ public:
 
 	constexpr auto GetValueAndReset()
 	{
-		return m_action(m_parser.GetValueAndReset());
+		if constexpr (ParserType::IsOmited())
+			return m_action();
+		else
+			return m_action(m_parser.GetValueAndReset());
+
 	}
 
 	void Reset()
 	{
 		m_parser.Reset();
+	}
+
+	constexpr static bool IsOmited()
+	{
+		return false;
 	}
 };
 

@@ -209,6 +209,19 @@ namespace Parsers
 		{
 			m_result = {};
 		}
+
+		constexpr static INT get_num_of_parsers()
+		{
+			return std::tuple_size_v<decltype(tuple_parsers)>;
+		}
+
+		constexpr static bool IsOmited()
+		{
+			auto lambda_check_parser_omited = [&]<size_t index>()  constexpr { return std::tuple_element_t<index, decltype(tuple_parsers)>::IsOmited(); };
+			auto lambda_check_each = [&]<size_t ... Ts>(std::index_sequence<Ts...> indices) constexpr { return (lambda_check_parser_omited.operator() < Ts > () && ...); };
+
+			return lambda_check_each(std::make_index_sequence<get_num_of_parsers()>{});
+		}
 	};
 
 	template<typename TLeft, typename TRight>

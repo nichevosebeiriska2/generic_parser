@@ -53,6 +53,12 @@ namespace Parsers
 		return alternative(left, right);
 	}
 
+	//template<ConceptParser ... TLeft, ConceptParser TRight>
+	//auto operator|(alternative<TLeft...> alt, TRight&& right)
+	//{
+	//	return alternative(alt, right);
+	//}
+
 	//repeate
 	template<ConceptParser TParser>
 	auto operator+(TParser parser)

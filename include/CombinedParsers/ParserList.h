@@ -20,7 +20,7 @@ namespace Parsers
 		TParser m_parser;
 		TParserDelimiter m_parser_delimiter;
 		parsing_attribute m_vector_result;
-		const UINT m_num_of_elements_to_parse{ CONST_NUMBER_OF_CHARS_AT_LEAST_ONE };
+		const INT m_num_of_elements_to_parse{ CONST_NUMBER_OF_CHARS_AT_LEAST_ONE };
 
 	protected:
 	protected:
@@ -67,7 +67,7 @@ namespace Parsers
 
 			// what would happen if skipper and parser_delimitar has the same single symbol( space for example ) ?
 			// seems like i have to implement some additional requirements for this case
-			UINT count = m_num_of_elements_to_parse;
+			INT count = m_num_of_elements_to_parse;
 
 			while (m_parser.Scan(ptr_string, ptr_string_end, skipper) && m_parser_delimiter.Scan(ptr_string, ptr_string_end, skipper) && (count--) != 0)
 				ptr_last_parsed_value_end = ptr_string;
@@ -81,7 +81,7 @@ namespace Parsers
 		}
 	public:
 		template<typename P, typename D>
-		list(P && p, D && pd, UINT num_of_elements_to_parse = CONST_NUMBER_OF_CHARS_AT_LEAST_ONE)
+		list(P && p, D && pd, INT num_of_elements_to_parse = CONST_NUMBER_OF_CHARS_AT_LEAST_ONE)
 			: m_parser{p}
 			, m_parser_delimiter{pd}
 			, m_num_of_elements_to_parse{num_of_elements_to_parse}	// for cases we want parse a non-fixed number of arguments use constants
@@ -112,6 +112,10 @@ namespace Parsers
 			m_vector_result = {};
 		}
 
+		static constexpr bool IsOmited()
+		{
+			return decltype(m_parser)::IsOmited();
+		}
 	};
 
 	template<typename TParser, typename TDelimiter>

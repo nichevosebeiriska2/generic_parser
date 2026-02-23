@@ -5,12 +5,15 @@
 #include "ParserWithAction.h"
 #include "ParserSequence.h"
 #include "ParserAlternative.h"
+#include "ParseRuleDeclaration.h"
 
 #include "Operators.h"
 
 #include "parser_aliases.h"
+#include "ExampleJson.h"
 
 #include <optional>
+#include <map>
 
 template<ConceptCharType CharType, ConceptParser ParserType, ConceptParser SkipperType>
 auto ParseLexeme(const std::basic_string<CharType>& strInput, ParserType & parser, SkipperType & skipper)
@@ -27,29 +30,83 @@ auto ParseLexeme(const std::basic_string<CharType>& strInput, ParserType & parse
 		return  parser.Parse(strBegin, strEnd, skipper) ? std::make_optional(parser.GetValueAndReset()) : std::nullopt;
 }
 
-template<ConceptCharType CharType, ConceptParser ParserType, ConceptParser SkipperType>
-auto ParseLexeme(const std::basic_string<CharType>& strInput, ParserType& parser, SkipperType& skipper, auto&& action)
-{
-	using namespace Parsers;
-	// simple version of parsing function. This function will then have to handle errors.
-	const CharType* strBegin = strInput.data();
-	const CharType* strEnd = strInput.data() + strInput.length();
+// declarations
+ParseRuleDeclaration<SJsonValue>	value; 
+ParseRuleDeclaration<SJsonArray*>	arr;
+ParseRuleDeclaration<SJsonObject*>	object;
 
-	bool parsed = false;
-	if (parsed = parser.Parse(strBegin, strEnd, skipper); parsed)
-		action(parser.GetValueAndReset());
-	
-	return  parsed ? std::make_optional(parser.GetValueAndReset()) : std::nullopt;
-}
+//using t = decltype(arr);
+//template<>
+//template<ConceptCharType CharType, typename TParserSkipper>
+//bool ParseRuleDeclaration<SJsonArray*>::Parse(const CharType*& ptr_string, const CharType*& ptr_string_end, TParserSkipper& skipper)
+//{
+//	return false;
+//}
 
-struct SJsonArray
-{
-	std::vector<int> m_vec;
-};
+//template<>
+//template<ConceptCharType CharType>
+//bool ParseRuleDeclaration<SJsonArray*>::Parse(const CharType*& ptr_string, const CharType*& ptr_string_end)
+//{
+//	return false;
+//}
+
+using namespace Parsers;
+
+auto parser_json_null = ParserWrapperWithAction(_string_lit{ std::string_view{"Null"} }, []() {return SJsonNull(); });
+
+auto parser_json_bool_true = ParserWrapperWithAction(_string_lit{ std::string_view{"True"} }, []() {return SJsonBool{ SJsonBool::TRUE }; });
+auto parser_json_bool_false = ParserWrapperWithAction(_string_lit{ std::string_view{"False"} }, []() {return SJsonBool{ SJsonBool::FALSE }; });
+auto parser_json_bool = ParserWrapperWithAction(parser_json_bool_true /*| parser_json_bool_false*/, [](auto&& arg) {return SJsonBool{ arg.m_value }; });
+
+auto parser_json_value_int = ParserWrapperWithAction(_int{}, [](int arg) {return SJsonInt{ arg }; });
+auto parser_json_value_float = ParserWrapperWithAction(_float{}, [](float arg) {return SJsonFloat{ arg }; });
+auto parser_json_value_string = ParserWrapperWithAction(_string{}, [](std::string&& arg) {return SJsonString{ arg }; });
+
+auto parser_array = "[" >> (value % _string_lit{ std::string_view{","} }) >> "]";
+auto parser_object = "{" >> (value % _string_lit{ std::string_view{","} }) >> "}";
+
+auto parser_json_array = ParserWrapperWithAction(parser_array, [](auto&& arg)
+	{
+		auto arr = new SJsonArray;
+
+		for (auto& el : std::get<0>(arg))
+			arr->m_vecValues.emplace_back(el);
+
+		return arr;
+	});
+
+auto parser_json_object = ParserWrapperWithAction(parser_object, [](auto&& arg)
+	{
+		auto obj = new SJsonObject;
+
+		//for (auto& el : std::get<0>(arg))
+			//arr.m_vecValues.emplace_back(el);
+
+		return obj;
+	});
+
+auto parser_json_value = ParserWrapperWithAction(parser_json_null | parser_json_bool  | parser_json_value_float | parser_json_value_int | parser_json_value_string  | object | arr
+	, [](const auto& arg) {SJsonValue value; value.m_value = arg; return value; });
+
+ImplementParsingRule(arr, parser_json_array);
+ImplementParsingRule(value, parser_json_value);
+ImplementParsingRule(object, parser_json_object);
 
 void main()
 {
 	using namespace Parsers;
 
+	std::string strBool = " [1.3, 1.2, 1.1]";
+	auto res = ParseLexeme(strBool, value, Skippers::space);
 
+	auto seq_vec3 = "[" >> _int{} >> "," >> _int{} >> "," >> _int{} >> "]";
+
+	//alternative a = alternative(_int{}, parser_json_bool);
+
+	std::string str = "{ a = 1 }";
+
+	//ParseLexeme(str, object, Skippers::space);
+
+	//ParseRule<float> rule;
+	//rule.AddImplementation([](const char*& p_b, const char*& p_e) {return _int{}.Parse(p_b, p_e); });
 }

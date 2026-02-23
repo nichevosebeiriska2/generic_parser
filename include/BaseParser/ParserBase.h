@@ -106,6 +106,11 @@ protected:
 		{
 			m_result = {};
 		}
+
+		static bool constexpr IsOmited()
+		{
+			return false;
+		}
 	};
 
 
@@ -171,6 +176,11 @@ protected:
 				ptr_string += m_scanner.GetNumberOfScannedChars();
 
 			return scanned;
+		}
+
+		static bool consteval IsOmited()
+		{
+			return true;
 		}
 	};
 }

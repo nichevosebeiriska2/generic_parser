@@ -74,6 +74,11 @@ namespace Parsers
 		{
 			return m_parser.Scan(ptr_string, ptr_string_end);
 		}
+
+		bool constexpr IsOmited()
+		{
+			return true;
+		}
 	};
 
 	// metafunctions 
