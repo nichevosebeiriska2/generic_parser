@@ -7,17 +7,13 @@ namespace Parsers{
 template<ConceptParser ParserType, typename ActionType>
 class ParserWrapperWithAction
 {
-	void f()
-	{
-		using t = lambda_traits<ActionType>::has_arguments;
-	}
 	consteval static auto DeduceNewParsingAttribute()
 	{
 
 		if constexpr (ParserType::IsOmited())
 		{
 			static_assert(std::is_invocable_v<ActionType>
-				, "ParserWrapperWithAction::DeduceNewParsingAttribute() : action cant be invoked with no arguments");
+				, "ParserWrapperWithAction::DeduceNewParsingAttribute() : action cant be invoked with arguments");
 
 			return std::invoke_result_t < ActionType>{};
 		}

@@ -129,11 +129,11 @@ namespace Parsers
 			return (UseParserAsScanner<CharType, SkipperType, Ts>(ptr_string, ptr_string_end, skipper) || ...);
 		}
 
-		template<ConceptCharType CharType, ConceptParser SkipperType, size_t ... Ts>
+		template<ConceptCharType CharType, size_t ... Ts>
 		auto ScanImpl(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, std::index_sequence<Ts...> seq)
 		{
 			// this parameter pack extension stops on first successfull Parse() call
-			return (UseParserAsScanner<CharType, SkipperType, Ts>(ptr_string, ptr_string_end) || ...);
+			return (UseParserAsScanner<CharType, Ts>(ptr_string, ptr_string_end) || ...);
 		}
 
 

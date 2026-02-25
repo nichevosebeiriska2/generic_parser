@@ -96,6 +96,11 @@ public:
 		return count > 0;
 	}
 
+	static constexpr bool IsOmited()
+	{
+		return decltype(m_parser)::IsOmited();
+	}
+
 	auto GetValueAndReset()
 	{
 		m_parser.Reset();

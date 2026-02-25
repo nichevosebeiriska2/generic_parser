@@ -29,7 +29,7 @@ template<typename T>
 concept ConceptParser = requires(T t)
 {
 	// you need to drop qualifiers inside requires expression. otherwise you will get compiler error using ConceptParser as universal reference type
-	typename std::remove_cvref_t<T>::parsing_attribute; 
+	typename std::remove_cvref_t<decltype(t)>::parsing_attribute;
 
 	requires std::is_move_constructible_v<T>;
 	requires std::is_copy_constructible_v<T>;

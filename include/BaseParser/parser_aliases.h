@@ -25,5 +25,8 @@ namespace Parsers
 
 namespace Skippers
 {
-	inline auto space = Parsers::_string_lit{ std::string_view{" "} };
+	auto space = Parsers::_string_lit{ std::string_view{" "} };
+	auto newline = Parsers::_string_lit{ std::string_view{"\n"} };
+	auto tab = Parsers::_string_lit{ std::string_view{"\t"} };
+	//constexpr auto space_newline = space | newline;
 }

@@ -19,4 +19,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/include/Scanner
     ${CMAKE_SOURCE_DIR}/include/BaseParser
     ${CMAKE_SOURCE_DIR}/include/CombinedParsers
+    ${CMAKE_SOURCE_DIR}/include/ParsingRule
+    ${CMAKE_SOURCE_DIR}/include/examples
+    ${CMAKE_SOURCE_DIR}/include/examples/Json
 )
