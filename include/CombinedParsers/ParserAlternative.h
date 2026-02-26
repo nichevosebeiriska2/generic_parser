@@ -85,7 +85,7 @@ namespace Parsers
 						bool parsed =  std::get< index>(tuple_parsers).Parse(ptr_string, ptr_string_end, skipper);
 					
 						if (parsed)
-							m_result.emplace<index>(std::get< index>(tuple_parsers).GetValueAndReset());// = std::get< index>(tuple_parsers).GetValueAndReset();
+							m_result.emplace<index>(std::get< index>(tuple_parsers).GetValueAndReset());
 
 						return parsed;
 					}
@@ -95,14 +95,12 @@ namespace Parsers
 				};
 
 			return (lambda.operator()<Ts>() || ...);
-			//return (UseParser<CharType, SkipperType, Ts>(ptr_string, ptr_string_end, skipper) || ...);
 		}
 
 		template<ConceptCharType CharType, size_t ... Ts>
 		auto ParseImpl(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, std::index_sequence<Ts...> seq)
 		{
 			// this parameter pack extension stops on first successfull Parse() call
-			//return (UseParser<CharType, Ts>(ptr_string, ptr_string_end) || ...);
 			auto lambda = [&]<size_t index>() constexpr
 			{
 				if constexpr (std::get< index>(tuple_parsers).IsOmited())
@@ -143,31 +141,37 @@ namespace Parsers
 		parsing_attribute m_result{};
 
 	public:
-		alternative(Parsers...parsers)
+		constexpr alternative(Parsers...parsers)
 			: tuple_parsers{parsers...}
 		{
 		}
 
 		template<typename... T>
-		alternative(alternative<T...> seq)
+		constexpr alternative(alternative<T...> seq)
 			: tuple_parsers{ seq.tuple_parsers }
 		{
 		}
 
 		template<typename... T, typename TRight>
-		alternative(alternative<T...> seq, TRight && right)
+		constexpr alternative(alternative<T...> seq, TRight && right)
 			: tuple_parsers{ tuple_utils::concat_as_tuple(seq.tuple_parsers, right) }
 		{
 		}
 
 		template<typename TLeft, typename... T>
-		alternative(TLeft&& left, alternative<T...> seq)
+		constexpr alternative(TLeft&& left, alternative<T...> seq)
 			: tuple_parsers{ tuple_utils::concat_as_tuple(left, seq.tuple_parsers) }
 		{
 		}
 
+		template<typename TLeft, typename TRight>
+		constexpr alternative(TLeft &&left, TRight &&right)
+			: tuple_parsers{std::forward<TLeft>(left), std::forward<TRight>(right)}
+		{
+		}
+
 		template<typename ... TAltLeft, typename... TAltRight>
-		alternative(alternative<TAltLeft...> left, alternative<TAltRight...> right)
+		constexpr alternative(alternative<TAltLeft...> left, alternative<TAltRight...> right)
 			: tuple_parsers{ tuple_utils::concat_as_tuple(left.tuple_parsers, right.tuple_parsers) }
 		{
 		}
@@ -201,6 +205,10 @@ namespace Parsers
 			return std::exchange(m_result, {});
 		}
 
+		auto operator ()(auto action)
+		{
+			return ParserWrapperWithAction(*this, action);
+		}
 
 	};
 

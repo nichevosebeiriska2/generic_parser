@@ -79,6 +79,11 @@ namespace Parsers
 		{
 			return true;
 		}
+
+		auto operator ()(auto action)
+		{
+			return ParserWrapperWithAction(*this, action);
+		}
 	};
 
 	// metafunctions 

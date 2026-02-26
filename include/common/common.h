@@ -89,6 +89,13 @@ using lambda_traits = action_traits<decltype(&Lambda::operator())>;
 
 // MACRO
 
+// You have to copy 'impl' parser to separate its result from ones upward in recursive call stack!
+// ImplementParsingRule links two objects : declaration and implementation (as a 'declaration' type not a specific object). 
+// Its literally implement Parse()/Scan() functions of 'declaration' parser type
+// With no copy in Parser() methods each call of 'declaration.Parse()' will be called from one 'impl' parser object.
+// But 'logical' lifetime of separate parser should be ended once it have Parse()/Scan() method called.
+// Otherwise 'impl' as a object (not a type!) will end up participating in several iterations
+// Every parser used as a 'impl' type has to have Copy() method
 #define ImplementParsingRule(decl, impl)\
 template<>\
 template<ConceptCharType CharType, typename TParserSkipper>\

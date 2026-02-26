@@ -222,6 +222,11 @@ namespace Parsers
 
 			return lambda_check_each(std::make_index_sequence<get_num_of_parsers()>{});
 		}
+
+		auto operator ()(auto action)
+		{
+			return ParserWrapperWithAction(*this, action);
+		}
 	};
 
 	template<typename TLeft, typename TRight>

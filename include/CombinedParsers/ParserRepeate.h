@@ -117,6 +117,12 @@ public:
 		m_parser.Reset();
 		m_vec_result = {};
 	}
+
+	auto operator ()(auto action)
+	{
+		return ParserWrapperWithAction(*this, action);
+	}
+
 };
 
 }

@@ -32,27 +32,24 @@ auto ParseLexeme(const std::basic_string<CharType>& strInput, ParserType & parse
 
 using namespace Parsers;
 
-#include "Json/ExampleJson.h"
-
 void main()
 {
 	using namespace Parsers;
 
 	std::string strBool = 
 	R"({ 
-		NAME = 123;
-		object = {
-			name = [a,			b ,                     c];
-			anotherobject = { somevalue = 123;};
-			emptyone = {};
-		};
-	};)";
-	//	R"({ 
-	//	NAME = 123;
-	//		emptyone = {};
-	//};)";
-	auto space_newline = Skippers::space | Skippers::newline | Skippers::tab;
-	auto res = ParseLexeme(strBool, value, space_newline);
-	std::string str = "{ a = 1 }";
+		"NAME" = 123;
+		"NAME2" = "123";
 
+		"array" = [1,2,3, 
+								[1,2,3],
+								["s1", "s2"],
+								[true, true ,null]
+							];
+		"object" = {"almnlnlnlnljljlkjljljljlj" = { "b" = {};};};
+	};)";
+	
+	auto res = ParseLexeme(strBool, value, Skippers::space);
+
+	int a = 1;
 }

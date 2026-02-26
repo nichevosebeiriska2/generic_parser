@@ -2,6 +2,7 @@
 
 #include <string>
 #include "scanner_aliases.h"
+#include "ParserWithAction.h"
 
 namespace Parsers
 {
@@ -111,6 +112,11 @@ protected:
 		{
 			return false;
 		}
+
+		auto operator ()(auto action)
+		{
+			return ParserWrapperWithAction(*this, action);
+		}
 	};
 
 
@@ -145,7 +151,12 @@ protected:
 		constexpr ParserLiteral(std::basic_string_view<CharType> view) noexcept
 			: m_scanner{view}
 		{
-		};
+		}
+
+		constexpr ParserLiteral(const CharType *pStringLiteral) noexcept
+			: m_scanner{pStringLiteral}
+		{
+		}
 
 		template<ConceptCharType CharType, typename TParserSkipper>
 		bool Parse(const CharType *&ptr_string, const CharType *&ptr_string_end, TParserSkipper &skipper)
@@ -182,7 +193,16 @@ protected:
 		{
 			return true;
 		}
+
+		auto operator ()(auto action)
+		{
+			return ParserWrapperWithAction(*this, action);
+		}
 	};
+
+
+	template<ConceptCharType CharType>
+	ParserLiteral(const CharType *pstring) -> ParserLiteral<CharType>;
 }
 
 

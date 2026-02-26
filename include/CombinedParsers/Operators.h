@@ -46,18 +46,30 @@ namespace Parsers
 		return list(parser, parser_delimiter);
 	}
 
+	template<ConceptParser TParser, ConceptCharType CharType>
+	auto operator %(TParser &&parser, const CharType* pStrLiteral)
+	{
+		return list(parser, _string_lit{pStrLiteral});
+	}
+
 	// alternative
 	template<ConceptParser TLeft, ConceptParser TRight>
-	auto operator|(TLeft&& left, TRight&& right)
+	constexpr auto operator|(TLeft&& left, TRight&& right)
 	{
 		return alternative(left, right);
 	}
 
-	//template<ConceptParser ... TLeft, ConceptParser TRight>
-	//auto operator|(alternative<TLeft...> alt, TRight&& right)
-	//{
-	//	return alternative(alt, right);
-	//}
+	template<ConceptParser TLeft, ConceptCharType CharType>
+	constexpr auto operator|(TLeft &&left, const CharType* pStrLiteral)
+	{
+		return alternative(left, _string_lit{pStrLiteral});
+	}
+
+	template<ConceptCharType CharType>
+	constexpr auto operator|(_string_lit<CharType> lit, const CharType *pStrLiteralright)
+	{
+		return alternative(lit, _string_lit{pStrLiteralright});
+	}
 
 	//repeate
 	template<ConceptParser TParser>
@@ -72,15 +84,34 @@ namespace Parsers
 		return repeate(parser, CONST_NUMBER_OF_CHARS_ZERO_OR_MORE);
 	}
 
+	template<ConceptParser TParser, ConceptParser TParserDelimiter>
+	auto operator+(list<TParser, TParserDelimiter> parser)
+	{
+		return list(parser, CONST_NUMBER_OF_CHARS_AT_LEAST_ONE);
+	}
+
+	template<ConceptParser TParser, ConceptParser TParserDelimiter>
+	auto operator*(list<TParser, TParserDelimiter> parser)
+	{
+		return list(parser, CONST_NUMBER_OF_CHARS_ZERO_OR_MORE);
+	}
+
 	template<ConceptParser TParser>
 	auto operator*(UINT count, TParser&& parser)
 	{
 		return repeate(parser, count);
 	}
 
+	// omited
+
 	template<typename TParser>
 	auto omit(TParser && parser)
 	{
 		return omited(std::forward<TParser>(parser));
+	}
+
+	namespace Skippers
+	{
+		inline auto space = Parsers::_string_lit{" "} | "\t" | "\n" ;
 	}
 }

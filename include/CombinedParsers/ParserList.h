@@ -80,12 +80,20 @@ namespace Parsers
 			return m_vector_result.size() == m_num_of_elements_to_parse;
 		}
 	public:
-		template<typename P, typename D>
+		template<ConceptParser P, ConceptParser D>
 		list(P && p, D && pd, INT num_of_elements_to_parse = CONST_NUMBER_OF_CHARS_AT_LEAST_ONE)
 			: m_parser{p}
 			, m_parser_delimiter{pd}
 			, m_num_of_elements_to_parse{num_of_elements_to_parse}	// for cases we want parse a non-fixed number of arguments use constants
 																	// CONST_NUMBER_OF_CHARS_AT_LEAST_ONE/ CONST_NUMBER_OF_CHARS_ZERO_OR_MORE
+		{
+		}
+
+		template<typename P, typename D>
+		list(const list<P, D>& other , INT num_of_elements_to_parse = CONST_NUMBER_OF_CHARS_AT_LEAST_ONE)
+			: m_parser{other.m_parser}
+			, m_parser_delimiter{other.m_parser_delimiter}
+			, m_num_of_elements_to_parse{num_of_elements_to_parse}
 		{
 		}
 
@@ -116,6 +124,11 @@ namespace Parsers
 		{
 			return decltype(m_parser)::IsOmited();
 		}
+
+		auto operator ()(auto action)
+		{
+			return ParserWrapperWithAction(*this, action);
+		}
 	};
 
 	template<typename TParser, typename TDelimiter>
@@ -123,4 +136,8 @@ namespace Parsers
 
 	template<typename TParser, typename TDelimiter>
 	list(TParser parser, TDelimiter delimiter, int N) -> list<TParser, TDelimiter>;
+
+
+	template<typename TParser, typename TDelimiter>
+	list(const list<TParser, TDelimiter>& other, int N) -> list<TParser, TDelimiter>;
 }
