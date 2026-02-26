@@ -34,7 +34,7 @@ concept ConceptParser = requires(T t)
 	requires std::is_move_constructible_v<T>;
 	requires std::is_copy_constructible_v<T>;
 
-	//{ t.IsOmited() } -> std::same_as<bool>;
+	{ std::remove_cvref_t<decltype(t)>::IsOmited() } -> std::same_as<bool>;
 	//requires ConceptHasParseFunction<T, char> || ConceptHasParseFunction<T, wchar_t>;
 	//requires ConceptHasScanFunction<T, char> || ConceptHasScanFunction<T, wchar_t>;
 };
@@ -94,13 +94,19 @@ template<>\
 template<ConceptCharType CharType, typename TParserSkipper>\
 bool typename decltype(decl)::Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TParserSkipper& skipper)	\
 {\
-	return impl.Parse(ptr_string, ptr_string_end, skipper);\
+	auto copy = impl.Copy();\
+	bool parsed = copy.Parse(ptr_string, ptr_string_end, skipper);\
+	if (parsed) m_last_result = copy.GetValueAndReset(); \
+	return parsed;\
 }; \
 template<>\
 template<ConceptCharType CharType>\
 bool typename decltype(decl)::Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)	\
 {\
-	return impl.Parse(ptr_string, ptr_string_end);\
+	auto copy = impl.Copy();\
+	bool parsed = copy.Parse(ptr_string, ptr_string_end);\
+	if (parsed) m_last_result = copy.GetValueAndReset(); \
+	return parsed;\
 }; \
 template<>\
 template<ConceptCharType CharType, typename TParserSkipper>\
@@ -116,11 +122,9 @@ bool typename decltype(decl)::Scan(constCharPtrRef<CharType> ptr_string, constCh
 }; \
 template<>\
 decltype(decl)::parsing_attribute typename decltype(decl)::GetValueAndReset(){\
-	return impl.GetValueAndReset();\
+	return std::exchange(m_last_result, {});\
 }\
 \
-
-
 
 // \ MACRO
 

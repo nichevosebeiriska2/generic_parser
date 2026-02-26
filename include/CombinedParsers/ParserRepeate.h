@@ -53,14 +53,20 @@ public:
 	bool Parse(const CharType*& ptr_string, const CharType*& ptr_string_end, TParserSkipper& skipper)
 	{
 		UseSkipper(ptr_string, ptr_string_end, skipper);
+		UINT count = 0;
 		while (m_parser.Parse(ptr_string, ptr_string_end, skipper))
 		{
 			m_vec_result.emplace_back(m_parser.GetValueAndReset());
 			UseSkipper(ptr_string, ptr_string_end, skipper);
+			count++;
 		}
 
-		return !m_vec_result.empty();
-
+		if(number_of_repeats == CONST_NUMBER_OF_CHARS_AT_LEAST_ONE)
+			return !m_vec_result.empty();
+		else if(number_of_repeats == CONST_NUMBER_OF_CHARS_ZERO_OR_MORE)
+			return true;
+		else
+			return number_of_repeats == count;
 	}
 
 	template<ConceptCharType CharType, ConceptParser ParserType>

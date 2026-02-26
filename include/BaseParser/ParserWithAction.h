@@ -83,6 +83,11 @@ public:
 	{
 		return false;
 	}
+
+	auto Copy()
+	{
+		return *this;
+	}
 };
 
 template<typename P, typename A>

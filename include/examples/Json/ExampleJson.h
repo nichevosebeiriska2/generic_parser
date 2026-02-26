@@ -67,7 +67,7 @@ auto parser_json_array = parser_with_action("[" >> parser_list_of_values >> "]" 
 	});
 
 // object
-auto parser_values_map = *(_string{} >> "=" >> value >> ";"); // 0 to inf fields
+auto parser_values_map = *(_string{} >> "=" >> value >> ";"); // zero or more fields
 auto parser_json_object = parser_with_action("{" >> parser_values_map >> "}"
 	, [](auto&& tuple_pairs_name_value)
 	{
@@ -83,8 +83,7 @@ auto parser_json_object = parser_with_action("{" >> parser_values_map >> "}"
 auto parser_json_value = parser_with_action(parser_json_null | parser_json_bool  | parser_json_float | parser_json_int | parser_json_string | parser_json_array | parser_json_object
 	, [](auto&& arg)
 	{
-
-		return std::visit([](auto&& SJsonValue) {return SJsonValue; }, arg);
+		return std::visit([](auto&& jsonValue) {return jsonValue; }, arg);
 	}
 );
 

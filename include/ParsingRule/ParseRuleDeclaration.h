@@ -6,12 +6,13 @@
 template<class TRuleTag, typename TResult>
 class ParseRule
 {
-	std::function<bool(const char*&, const char*&)> m_parsing_function;
-	
-
 public:
 	using parsing_attribute = TResult;
 
+protected:
+	parsing_attribute m_last_result{};
+
+public:
 	ParseRule() = default;
 
 
@@ -26,8 +27,13 @@ public:
 
 	template<ConceptCharType CharType>
 	bool Scan(const CharType*& ptr_string, const CharType*& ptr_string_end);
-
+	
 	static constexpr bool IsOmited() noexcept { return false; };
 	parsing_attribute GetValueAndReset ();
 	void Reset() noexcept {}
+
+	auto Copy()
+	{
+		return *this;
+	}
 };
