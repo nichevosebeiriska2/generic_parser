@@ -76,7 +76,8 @@ public:
 
 	void Reset()
 	{
-		m_parser.Reset();
+		if constexpr (!std::remove_cvref_t<decltype(m_parser)>::IsOmited())
+			m_parser.Reset();
 	}
 
 	constexpr static bool IsOmited()

@@ -123,10 +123,11 @@ namespace Parsers
 			return decltype(m_parser)::IsOmited();
 		}
 
-		auto operator ()(auto action)
+		auto operator [](auto action)
 		{
 			return ParserWrapperWithAction(*this, action);
 		}
+
 	};
 
 	template<typename TParser, typename TDelimiter>

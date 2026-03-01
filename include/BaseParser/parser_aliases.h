@@ -16,8 +16,8 @@ namespace Parsers
 	template<ConceptCharType CharType = char>
 	using _string = Parser<Scanners::ScannerStringPrintableSymbols, std::basic_string<CharType>>;
 
-	template<ConceptCharType CharType>
-	using _char = Parser<Scanners::ScannerCharPrintableSymbol, CharType>;
+	using _char = Parser<Scanners::ScannerCharAny, char>;
+	using _wchar = Parser<Scanners::ScannerCharAny, wchar_t>;
 
 	template<ConceptCharType CharType>
 	using _string_lit = ParserLiteral<CharType, Scanners::ScannerStringLiteral>;

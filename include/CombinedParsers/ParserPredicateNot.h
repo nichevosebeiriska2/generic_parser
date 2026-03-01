@@ -78,11 +78,11 @@ namespace Parsers {
 		constexpr auto GetValueAndReset()
 		{
 			return tag_attribute_unused{};
-			//return std::exchange(m_result, {});
 		}
 		void Reset()
 		{
-			m_parser.Reset();
+			if constexpr (!std::remove_cvref_t<decltype(m_parser)>::IsOmited())
+				m_parser.Reset();
 		}
 
 		static constexpr bool IsOmited()
@@ -90,7 +90,7 @@ namespace Parsers {
 			return false;
 		}
 
-		auto operator ()(auto action)
+		auto operator [](auto action)
 		{
 			return ParserWrapperWithAction(*this, action);
 		}

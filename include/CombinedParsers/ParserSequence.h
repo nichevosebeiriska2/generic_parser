@@ -223,11 +223,13 @@ namespace Parsers
 
 		auto GetValueAndReset()
 		{
+			tuple_utils::tuple_parsers_reset_all(tuple_parsers);
 			return std::exchange(m_result, {});
 		}
 
 		void Reset()
 		{
+			tuple_utils::tuple_parsers_reset_all(tuple_parsers);
 			m_result = {};
 		}
 
@@ -244,7 +246,7 @@ namespace Parsers
 			return lambda_check_each(std::make_index_sequence<get_num_of_parsers()>{});
 		}
 
-		auto operator ()(auto action)
+		auto operator [](auto action)
 		{
 			return ParserWrapperWithAction(*this, action);
 		}

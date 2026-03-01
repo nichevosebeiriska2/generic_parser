@@ -220,16 +220,17 @@ namespace Parsers
 
 		auto GetValueAndReset()
 		{
+			tuple_utils::tuple_parsers_reset_all(tuple_parsers);
 			return std::exchange(m_result, {});
 		}
 
 		auto Reset()
 		{
+			tuple_utils::tuple_parsers_reset_all(tuple_parsers);
 			m_result = {};
-			//m_parser.Reset();
 		}
 
-		auto operator ()(auto action)
+		auto operator [](auto action)
 		{
 			return ParserWrapperWithAction(*this, action);
 		}

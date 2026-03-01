@@ -120,6 +120,6 @@ namespace Parsers
 
 	namespace Skippers
 	{
-		inline auto space = Parsers::_string_lit{L" "} | L"\t" | L"\n" ;
+		inline auto space = Parsers::_string_lit{" "} | "\t" | "\n" ;
 	}
 }

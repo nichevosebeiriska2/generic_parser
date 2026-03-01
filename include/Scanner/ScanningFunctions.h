@@ -51,77 +51,49 @@ int ScanStringForInteger<wchar_t>(const wchar_t *const ptr_to_string, const wcha
 
 
 template<ConceptCharType CharType>
-int ScanStringForFloat(const CharType *ptr_to_string, const CharType *ptr_to_string_end);
-
-template<>
-int ScanStringForFloat<char>(const char *const ptr_to_string, const char *const ptr_to_string_end)
+int ScanStringForFloat(const CharType* ptr_to_string, const CharType* ptr_to_string_end)
 {
-	if(ptr_to_string >= ptr_to_string_end || *ptr_to_string == '.')
-		return 0;
-
-	auto ptr_temp = ptr_to_string;
-
-	if(*ptr_temp == '-')
-		ptr_temp++;
-
-	int number_of_dots = 0;
-	bool previous_symbols_is_dot = false;
-	while(ptr_temp < ptr_to_string_end 
-				&& (std::isdigit(*ptr_temp) || ((*ptr_temp == '.') && number_of_dots < 1))
-				&& number_of_dots < 2)
+	if constexpr ( std::is_same_v<CharType, char>)
 	{
-		previous_symbols_is_dot = (*(ptr_temp) == '.');
-		number_of_dots += previous_symbols_is_dot;
-		ptr_temp += number_of_dots < 2;
-	}
+		char* ptr_end = nullptr;
+		std::strtof(ptr_to_string, &ptr_end);
 
-	return (ptr_temp - ptr_to_string) - (int)previous_symbols_is_dot;
+		return ptr_end - ptr_to_string;
+	}
+	else
+	{
+		wchar_t* ptr_end = nullptr;
+		std::wcstof(ptr_to_string, &ptr_end);
+
+		return ptr_end - ptr_to_string;
+	}
 }
 
-template<>
-int ScanStringForFloat<wchar_t>(const wchar_t *const ptr_to_string, const wchar_t *const ptr_to_string_end)
-{
-	if(ptr_to_string >= ptr_to_string_end || *ptr_to_string == L'.')
-		return 0;
-
-	auto ptr_temp = ptr_to_string;
-	int number_of_dots = 0;
-
-	while(ptr_temp < ptr_to_string_end
-				&& (std::iswdigit(*ptr_temp) || ((ptr_temp > ptr_to_string) && (*ptr_temp == L'.')))
-				&& number_of_dots < 2)
-	{
-		number_of_dots += (*ptr_temp == '.');
-		ptr_temp += number_of_dots < 2;
-	}
-
-	return (ptr_temp - ptr_to_string);
-}
 
 template<ConceptCharType CharType>
-constexpr bool ScanStringForLiteralString(const CharType *ptr_to_string, const CharType *ptr_to_string_end, const CharType *ptr_string_to_find);
+constexpr bool ScanStringForLiteralString(const CharType* ptr_to_string, const CharType* ptr_to_string_end, const CharType* ptr_string_to_find)
+{
+	if constexpr (std::is_same_v<CharType, char>)
+	{
+		return strncmp(ptr_to_string, ptr_string_to_find, strlen(ptr_string_to_find)) == 0;
+	}
+	else if constexpr (std::is_same_v<CharType, wchar_t>)
+	{
+		return wcsncmp(ptr_to_string, ptr_string_to_find, wcslen(ptr_string_to_find)) == 0;
+	}
+}
 
 
 template<>
 bool ScanStringForLiteralString<char>(const char *ptr_to_string, const char *ptr_to_string_end, const char *ptr_string_to_find)
 {
-	//if constexpr (std::is_constant_evaluated())
-	//{
-	//	return ConstexprFunctions::RawStringIsSubstrPrefix(ptr_to_string, ptr_string_to_find);
-	//}
-
 	return strncmp(ptr_to_string, ptr_string_to_find, strlen(ptr_string_to_find)) == 0;
 }
 
 template<>
-constexpr bool ScanStringForLiteralString<wchar_t>(const wchar_t *ptr_to_string, const wchar_t *ptr_to_string_end, const wchar_t *ptr_string_to_find)
+bool ScanStringForLiteralString<wchar_t>(const wchar_t *ptr_to_string, const wchar_t *ptr_to_string_end, const wchar_t *ptr_string_to_find)
 {
-	if constexpr (std::is_constant_evaluated())
-	{
-		return ConstexprFunctions::RawStringIsSubstrPrefix(ptr_to_string, ptr_string_to_find);
-	}
-	else
-		return wcsncmp(ptr_to_string, ptr_string_to_find, wcslen(ptr_string_to_find)) == 0;
+	return wcsncmp(ptr_to_string, ptr_string_to_find, wcslen(ptr_string_to_find)) == 0;
 }
 
 template<ConceptCharType CharType>

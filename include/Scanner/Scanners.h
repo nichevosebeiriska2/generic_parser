@@ -199,6 +199,23 @@ public:
 	}
 };
 
+template<ConceptCharType CharType>
+class ScannerCharAny : public InterfaceScanner<CharType>
+{
+public:
+	using TInterface = InterfaceScanner<CharType>;
+	using internal_char_type = TInterface::internal_char_type;
+
+public:
+	constexpr ScannerCharAny()
+	{
+	}
+
+	bool Scan(const TInterface::internal_char_type* ptr_to_string, const TInterface::internal_char_type* ptr_to_string_end)
+	{
+		return (TInterface::number_of_scanned_chars = ptr_to_string < ptr_to_string_end) > 0;
+	}
+};
 
 template<ConceptCharType CharType>
 class ScannerSymbolLiteral : public InterfaceScanner<CharType>

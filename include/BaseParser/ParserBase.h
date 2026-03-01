@@ -114,7 +114,7 @@ protected:
 			return false;
 		}
 
-		auto operator ()(auto action)
+		auto operator [](auto action)
 		{
 			return ParserWrapperWithAction(*this, action);
 		}
@@ -200,7 +200,7 @@ protected:
 			return true;
 		}
 
-		auto operator ()(auto action)
+		auto operator [](auto action)
 		{
 			return ParserWrapperWithAction(*this, action);
 		}

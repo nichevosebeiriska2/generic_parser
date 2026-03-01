@@ -137,7 +137,7 @@ public:
 		m_vec_result = {};
 	}
 
-	auto operator ()(auto action)
+	auto operator [](auto action)
 	{
 		return ParserWrapperWithAction(*this, action);
 	}

@@ -100,6 +100,42 @@ using lambda_traits = action_traits<decltype(&Lambda::operator())>;
 // Otherwise 'impl' as a object (not a type!) will end up participating in several iterations
 // Every parser used as a 'impl' type has to have Copy() method
 
+#define ImplementParsingRule(decl, impl)\
+template<>\
+template<ConceptCharType CharType, typename TParserSkipper>\
+bool typename decltype(decl)::Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TParserSkipper& skipper)	\
+{\
+	auto copy = impl.Copy();\
+	bool parsed = copy.Parse(ptr_string, ptr_string_end, skipper);\
+	if (parsed) m_last_result = copy.GetValueAndReset(); \
+	return parsed;\
+}; \
+template<>\
+template<ConceptCharType CharType>\
+bool typename decltype(decl)::Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)	\
+{\
+	auto copy = impl.Copy();\
+	bool parsed = copy.Parse(ptr_string, ptr_string_end);\
+	if (parsed) m_last_result = copy.GetValueAndReset(); \
+	return parsed;\
+}; \
+template<>\
+template<ConceptCharType CharType, typename TParserSkipper>\
+bool typename decltype(decl)::Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TParserSkipper& skipper)	\
+{\
+	return impl.Scan(ptr_string, ptr_string_end, skipper);\
+}; \
+template<>\
+template<ConceptCharType CharType>\
+bool typename decltype(decl)::Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)	\
+{\
+	return impl.Scan(ptr_string, ptr_string_end);\
+}; \
+template<>\
+decltype(decl)::parsing_attribute typename decltype(decl)::GetValueAndReset(){\
+	return std::exchange(m_last_result, {});\
+}\
+\
 
 // \ MACRO
 

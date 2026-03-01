@@ -101,7 +101,7 @@ public:
 		return false;
 	}
 
-	auto operator ()(auto action)
+	auto operator [](auto action)
 	{
 		return ParserWrapperWithAction(*this, action);
 	}

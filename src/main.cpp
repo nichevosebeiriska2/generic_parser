@@ -34,19 +34,26 @@ using namespace Parsers;
 
 //#include "json_example_input.h"
 
+#include <fstream>
+
+std::string read_file(std::string strPathToFile)
+{
+	std::ifstream file(strPathToFile);
+
+	if (file.is_open())
+		return { std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>{} };
+
+	return "";
+}
+
 void main()
 {
 	using namespace Parsers;
 
+	using namespace Scanners;
 
-	std::string str_json2 = std::string(R"(" 123\" " 123213)");
-	std::wstring str_float = L" 1.234e3f";
-	float f = 0;
-	wchar_t* b = str_float.data();
-	 wchar_t* e = b + str_float.length();
-
-	auto r = std::wcstof(b, &e);
-	//auto res = ParseLexeme(str_json_small, value, Skippers::space);
+	std::string strJson = read_file("C:\\Users\\niche\\source\\repos\\generic_parser\\include\\examples\\Json\\medium.txt");
+	auto res = ParseLexeme(strJson, value, Skippers::space);
 
 	int a = 1;
 }
