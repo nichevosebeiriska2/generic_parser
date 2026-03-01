@@ -5,6 +5,8 @@
 #include "ParserAlternative.h"
 #include "ParserList.h"
 #include "ParserRepeate.h"
+#include "ParserRaw.h"
+#include "ParserPredicateNot.h"
 
 namespace Parsers
 {
@@ -102,6 +104,12 @@ namespace Parsers
 		return repeate(parser, count);
 	}
 
+	template<ConceptParser TParser>
+	auto operator!(TParser&& parser)
+	{
+		return predicate_not(parser);
+	}
+	
 	// omited
 
 	template<typename TParser>
@@ -112,6 +120,6 @@ namespace Parsers
 
 	namespace Skippers
 	{
-		inline auto space = Parsers::_string_lit{" "} | "\t" | "\n" ;
+		inline auto space = Parsers::_string_lit{L" "} | L"\t" | L"\n" ;
 	}
 }

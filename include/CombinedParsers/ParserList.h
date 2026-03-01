@@ -10,11 +10,8 @@ namespace Parsers
 	template<ConceptParser TParser, ConceptParser TParserDelimiter >
 	class list
 	{
-
 	public:
 		using parsing_attribute = std::vector<typename TParser::parsing_attribute>;
-
-	
 
 	protected:
 		TParser m_parser;
@@ -114,6 +111,7 @@ namespace Parsers
 			m_parser.Reset();
 			return std::exchange(m_vector_result, {});
 		}
+
 		void Reset()
 		{
 			m_parser.Reset();

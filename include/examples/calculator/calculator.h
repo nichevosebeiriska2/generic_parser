@@ -27,11 +27,11 @@ ParseRule<class tag_expr, SFactor>		expression;
 auto parser_number = (_float{} | _int{}) ([](auto&& arg_number){return arg_number;});
 
 auto parser_factor = (parser_number 
-											| ("-" >> parser_number) ([](auto &&tup)
-																								{
-																									return -(std::visit([](auto&& some_number){return some_number;}, std::get<0>(tup)));
-																								})
-											| ("(" >> expression >> ")")([](auto && arg){return arg;})
+				| ("-" >> parser_number) ([](auto &&tup)
+																	{
+																		return -(std::visit([](auto&& some_number){return some_number;}, std::get<0>(tup)));
+																	})
+				| ("(" >> expression >> ")")([](auto && arg){return arg;})
 );
 
 //auto parser_term = parser_number | ;

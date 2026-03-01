@@ -33,7 +33,8 @@ protected:
 	
 
 protected:
-		auto ParseFromPointers(const auto *ptr_string, const auto *ptr_string_end)
+		template<ConceptCharType CharType>
+		auto ParseFromPointers(constCharPtr<CharType> ptr_string, constCharPtr<CharType> ptr_string_end)
 		{
 			if constexpr((std::is_integral_v<parsing_attribute> || std::is_floating_point_v<parsing_attribute>) && !ConceptCharType<parsing_attribute>)
 			{
@@ -56,7 +57,7 @@ protected:
 		constexpr Parser(Parser &&other) noexcept = default;
 
 		template<ConceptCharType CharType, typename TParserSkipper>
-		bool Parse(const CharType *&ptr_string, const CharType *&ptr_string_end, TParserSkipper &skipper)
+		bool Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TParserSkipper &skipper)
 		{
 			UseSkipper(ptr_string, ptr_string_end, skipper);
 
@@ -64,7 +65,7 @@ protected:
 		}
 
 		template<ConceptCharType CharType>
-		bool Parse(const CharType *&ptr_string, const CharType *&ptr_string_end)
+		bool Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
 		{
 			auto scanner = TScanner<CharType>{};
 			
@@ -79,7 +80,7 @@ protected:
 		}
 
 		template<ConceptCharType CharType, typename TParserSkipper>
-		bool Scan(const CharType *&ptr_string, const CharType *&ptr_string_end, TParserSkipper &skipper)
+		bool Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TParserSkipper &skipper)
 		{
 			UseSkipper(ptr_string, ptr_string_end, skipper);
 
@@ -87,7 +88,7 @@ protected:
 		}
 
 		template<ConceptCharType CharType>
-		bool Scan(const CharType *&ptr_string, const CharType *&ptr_string_end)
+		bool Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
 		{
 			auto scanner = TScanner<CharType>{};
 			const bool scanned = scanner.Scan(ptr_string, ptr_string_end);
@@ -121,12 +122,12 @@ protected:
 
 
 	// used specialy for string/single symbol literals. omited by default!
-	template<ConceptCharType CharType>
+	template<ConceptCharType CharType, template<typename T> class TScanner>
 	class ParserLiteral
 	{
 	public:
 		using parsing_attribute = tag_attribute_unused;
-		using scanner_type = Scanners::ScannerStringLiteral<CharType>;
+		using scanner_type = TScanner<CharType>;
 		using internal_char_type = scanner_type::internal_char_type;
 
 		using const_pointer = const internal_char_type *;
@@ -153,33 +154,38 @@ protected:
 		{
 		}
 
-		constexpr ParserLiteral(const CharType *pStringLiteral) noexcept
+		constexpr ParserLiteral(constCharPtr<CharType> pStringLiteral) noexcept
 			: m_scanner{pStringLiteral}
 		{
 		}
 
+		constexpr ParserLiteral(constCharPtr<CharType> ptr_str_prefix, constCharPtr<CharType> ptr_str_prostfix) noexcept
+			: m_scanner{ ptr_str_prefix, ptr_str_prostfix }
+		{
+		}
+
 		template<ConceptCharType CharType, typename TParserSkipper>
-		bool Parse(const CharType *&ptr_string, const CharType *&ptr_string_end, TParserSkipper &skipper)
+		bool Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TParserSkipper &skipper)
 		{
 			UseSkipper(ptr_string, ptr_string_end, skipper);
 			return Scan(ptr_string, ptr_string_end);
 		}
 
 		template<ConceptCharType CharType>
-		bool Parse(const CharType *&ptr_string, const CharType *&ptr_string_end)
+		bool Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
 		{
 			return Scan(ptr_string, ptr_string_end);
 		}
 
 		template<ConceptCharType CharType, typename TParserSkipper>
-		bool Scan(const CharType *&ptr_string, const CharType *&ptr_string_end, TParserSkipper &skipper)
+		bool Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TParserSkipper &skipper)
 		{
 			UseSkipper(ptr_string, ptr_string_end, skipper);
 			return Scan(ptr_string, ptr_string_end);
 		}
 
 		template<ConceptCharType CharType>
-		bool Scan(const CharType *&ptr_string, const CharType *&ptr_string_end)
+		bool Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
 		{
 			static_assert(std::is_same_v<CharType, internal_char_type>, "ParserLiteral::Scan(const CharType *&ptr_string, const auto *&ptr_string_end, const auto &skipper) - char type should be the same as internal_char_type");
 			bool scanned = m_scanner.Scan(ptr_string, ptr_string_end);
@@ -202,7 +208,10 @@ protected:
 
 
 	template<ConceptCharType CharType>
-	ParserLiteral(const CharType *pstring) -> ParserLiteral<CharType>;
+	ParserLiteral(constCharPtr<CharType> pstring) -> ParserLiteral<CharType, Scanners::ScannerStringLiteral>;
+
+	template<ConceptCharType CharType>
+	ParserLiteral(constCharPtr<CharType> ptr_string_prefix, constCharPtr<CharType> ptr_string_postfix) -> ParserLiteral<CharType, Scanners::ScannerStringLiteralRaw>;
 }
 
 
@@ -221,8 +230,8 @@ constexpr bool is_basic_non_literal_parser_v = is_basic_non_literal_parser<T>::v
 template<typename T>
 struct is_basic_literal_parser : public std::false_type {};
 
-template<ConceptCharType CharType>
-struct is_basic_literal_parser<Parsers::ParserLiteral<CharType>> : std::true_type {};
+template<ConceptCharType CharType, template<typename T> class TScanner>
+struct is_basic_literal_parser<Parsers::ParserLiteral<CharType, TScanner>> : std::true_type {};
 
 template<typename T>
 constexpr bool is_basic_literal_parser_v = is_basic_literal_parser<T>::value;

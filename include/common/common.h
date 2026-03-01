@@ -9,6 +9,9 @@ template<typename T>
 concept ConceptCharType = std::is_same_v<T, char> || std::is_same_v<T, wchar_t>;
 
 template<ConceptCharType CharType>
+using constCharPtr = const CharType*; // use it to declare const ptr reference to underlying char type in template Parse()/Scan() functions. 
+
+template<ConceptCharType CharType>
 using constCharPtrRef = const CharType*&; // use it to declare const ptr reference to underlying char type in template Parse()/Scan() functions. 
 
 template<typename T, typename CharType>
@@ -96,42 +99,7 @@ using lambda_traits = action_traits<decltype(&Lambda::operator())>;
 // But 'logical' lifetime of separate parser should be ended once it have Parse()/Scan() method called.
 // Otherwise 'impl' as a object (not a type!) will end up participating in several iterations
 // Every parser used as a 'impl' type has to have Copy() method
-#define ImplementParsingRule(decl, impl)\
-template<>\
-template<ConceptCharType CharType, typename TParserSkipper>\
-bool typename decltype(decl)::Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TParserSkipper& skipper)	\
-{\
-	auto copy = impl.Copy();\
-	bool parsed = copy.Parse(ptr_string, ptr_string_end, skipper);\
-	if (parsed) m_last_result = copy.GetValueAndReset(); \
-	return parsed;\
-}; \
-template<>\
-template<ConceptCharType CharType>\
-bool typename decltype(decl)::Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)	\
-{\
-	auto copy = impl.Copy();\
-	bool parsed = copy.Parse(ptr_string, ptr_string_end);\
-	if (parsed) m_last_result = copy.GetValueAndReset(); \
-	return parsed;\
-}; \
-template<>\
-template<ConceptCharType CharType, typename TParserSkipper>\
-bool typename decltype(decl)::Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TParserSkipper& skipper)	\
-{\
-	return impl.Scan(ptr_string, ptr_string_end, skipper);\
-}; \
-template<>\
-template<ConceptCharType CharType>\
-bool typename decltype(decl)::Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)	\
-{\
-	return impl.Scan(ptr_string, ptr_string_end);\
-}; \
-template<>\
-decltype(decl)::parsing_attribute typename decltype(decl)::GetValueAndReset(){\
-	return std::exchange(m_last_result, {});\
-}\
-\
+
 
 // \ MACRO
 

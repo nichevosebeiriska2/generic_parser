@@ -97,12 +97,16 @@ namespace Parsers
 			// I do not see other way to properly associate parser index with output tuple index yet. 
 			// It is deffinitely should be optimized furthere 
 			decltype(EvaluateResultType(seq)) tup_temp{};
-			
+
+			auto ptr_temp = ptr_string;
+
 			// its neccessary to use smth like (&& ...) to guarantee left-to-right order of evaluation (look for 'https://en.cppreference.com/w/cpp/language/eval_order.html')
 			auto parsed = (ParseSingleParser<CharType, SkipperType, Ts>(tup_temp, ptr_string, ptr_string_end, skipper) && ...);
 
 			if (parsed)
 				m_result = tuple_utils::TupleDeleteParamsOfRequiredType<tag_attribute_unused>(tup_temp);
+			else
+				ptr_string = ptr_temp;
 
 			return parsed;
 		}
@@ -112,10 +116,13 @@ namespace Parsers
 		{
 			decltype(EvaluateResultType(seq)) tup_temp{};
 
+			auto ptr_temp = ptr_string;
 			auto parsed = (ParseSingleParser<CharType, Ts>(tup_temp, ptr_string, ptr_string_end) && ...);
 
 			if (parsed)
 				m_result = tuple_utils::TupleDeleteParamsOfRequiredType<tag_attribute_unused>(tup_temp);
+			else
+				ptr_string = ptr_temp;
 
 			return parsed;
 		}
@@ -123,13 +130,27 @@ namespace Parsers
 		template<ConceptCharType CharType, ConceptParser SkipperType, size_t ... Ts>
 		auto ScanImpl(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, SkipperType& skipper, const std::index_sequence<Ts...>& seq)
 		{
-			return (UseParserAsScanner<CharType, SkipperType, Ts>(ptr_string, ptr_string_end, skipper) && ...);
+			auto ptr_temp = ptr_string;
+
+			bool scanned = (UseParserAsScanner<CharType, SkipperType, Ts>(ptr_string, ptr_string_end, skipper) && ...);
+		
+			if (!scanned)
+				ptr_string = ptr_temp;
+
+			return scanned;
 		}
 
 		template<ConceptCharType CharType, size_t ... Ts>
 		auto ScanImpl(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, const std::index_sequence<Ts...>& seq)
 		{
-			return (UseParserAsScanner<CharType, Ts>(ptr_string, ptr_string_end) && ...);
+			auto ptr_temp = ptr_string;
+
+			bool scanned = (UseParserAsScanner<CharType, Ts>(ptr_string, ptr_string_end) && ...);
+
+			if (!scanned)
+				ptr_string = ptr_temp;
+
+			return scanned;
 		}
 
 	public:

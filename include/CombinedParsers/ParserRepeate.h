@@ -50,11 +50,11 @@ public:
 
 
 	template<ConceptCharType CharType, typename TParserSkipper>
-	bool Parse(const CharType*& ptr_string, const CharType*& ptr_string_end, TParserSkipper& skipper)
+	bool Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TParserSkipper& skipper)
 	{
 		UseSkipper(ptr_string, ptr_string_end, skipper);
 		UINT count = 0;
-		while (m_parser.Parse(ptr_string, ptr_string_end, skipper))
+		while (ptr_string != ptr_string_end && m_parser.Parse(ptr_string, ptr_string_end, skipper))
 		{
 			m_vec_result.emplace_back(m_parser.GetValueAndReset());
 			UseSkipper(ptr_string, ptr_string_end, skipper);
@@ -70,16 +70,25 @@ public:
 	}
 
 	template<ConceptCharType CharType, ConceptParser ParserType>
-	bool Parse(const CharType*& ptr_string, const CharType*& ptr_string_end)
+	bool Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
 	{
+		UINT count = 0;
 		while (m_parser.Parse(ptr_string, ptr_string_end))
+		{
+			count++;
 			m_vec_result.emplace_back(m_parser.GetValueAndReset());
+		}
 
-		return !m_vec_result.empty();
+		if (number_of_repeats == CONST_NUMBER_OF_CHARS_AT_LEAST_ONE)
+			return !m_vec_result.empty();
+		else if (number_of_repeats == CONST_NUMBER_OF_CHARS_ZERO_OR_MORE)
+			return true;
+		else
+			return number_of_repeats == count;
 	}
 
 	template<ConceptCharType CharType, typename ParserType>
-	bool Scan(const CharType*& ptr_string, const CharType*& ptr_string_end, ParserType& skipper)
+	bool Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, ParserType& skipper)
 	{
 		UseSkipper(ptr_string, ptr_string_end, skipper);
 		UINT count = 0;
@@ -89,17 +98,27 @@ public:
 			count++;
 		}
 
-		return count > 0;
+		if (number_of_repeats == CONST_NUMBER_OF_CHARS_AT_LEAST_ONE)
+			return !m_vec_result.empty();
+		else if (number_of_repeats == CONST_NUMBER_OF_CHARS_ZERO_OR_MORE)
+			return true;
+		else
+			return number_of_repeats == count;
 	}
 
 	template<ConceptCharType CharType, ConceptParser ParserType>
-	bool Scan(const CharType*& ptr_string, const CharType*& ptr_string_end)
+	bool Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
 	{
 		UINT count = 0;
 		while (m_parser.Scan(ptr_string, ptr_string_end))
 			count++;
 
-		return count > 0;
+		if (number_of_repeats == CONST_NUMBER_OF_CHARS_AT_LEAST_ONE)
+			return !m_vec_result.empty();
+		else if (number_of_repeats == CONST_NUMBER_OF_CHARS_ZERO_OR_MORE)
+			return true;
+		else
+			return number_of_repeats == count;
 	}
 
 	static constexpr bool IsOmited()

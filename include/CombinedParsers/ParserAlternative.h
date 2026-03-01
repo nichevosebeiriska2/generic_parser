@@ -64,13 +64,25 @@ namespace Parsers
 		template<ConceptCharType CharType, ConceptParser SkipperType, size_t index>
 			auto UseParserAsScanner(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, SkipperType& skipper)
 		{
-			return std::get<index>(tuple_parsers).Scan(ptr_string, ptr_string_end, skipper);
+				auto ptr_string_temp = ptr_string;
+				bool scanned = std::get<index>(tuple_parsers).Scan(ptr_string, ptr_string_end, skipper);
+
+				if (!scanned)
+					ptr_string = ptr_string_temp;
+
+				return scanned;
 		}
 
 		template<ConceptCharType CharType, size_t index>
 		auto UseParserAsScanner(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
 		{
-			return std::get<index>(tuple_parsers).Scan(ptr_string, ptr_string_end);
+			auto ptr_string_temp = ptr_string;
+			bool scanned = std::get<index>(tuple_parsers).Scan(ptr_string, ptr_string_end);
+			
+			if (!scanned)
+				ptr_string = ptr_string_temp;
+
+			return scanned;
 		}
 
 		template<ConceptCharType CharType, ConceptParser SkipperType, size_t ... Ts>
@@ -82,10 +94,13 @@ namespace Parsers
 					using t = std::tuple_element_t<index, decltype(tuple_parsers)>;
 					if constexpr (!std::remove_cvref_t<t>::IsOmited())
 					{
+						auto ptr_begin_temp = ptr_string;
 						bool parsed =  std::get< index>(tuple_parsers).Parse(ptr_string, ptr_string_end, skipper);
 					
 						if (parsed)
 							m_result.emplace<index>(std::get< index>(tuple_parsers).GetValueAndReset());
+						else
+							ptr_string = ptr_begin_temp;
 
 						return parsed;
 					}
@@ -105,10 +120,13 @@ namespace Parsers
 			{
 				if constexpr (std::get< index>(tuple_parsers).IsOmited())
 				{
+					auto ptr_begin_temp = ptr_string;
 					bool parsed = std::get< index>(tuple_parsers).Parse(ptr_string, ptr_string_end);
 
 					if (parsed)
 						m_result = std::get< index>(tuple_parsers).GetValueAndReset();
+					else
+						ptr_string = ptr_begin_temp;
 
 					return parsed;
 				}
@@ -203,6 +221,12 @@ namespace Parsers
 		auto GetValueAndReset()
 		{
 			return std::exchange(m_result, {});
+		}
+
+		auto Reset()
+		{
+			m_result = {};
+			//m_parser.Reset();
 		}
 
 		auto operator ()(auto action)

@@ -1,4 +1,4 @@
-#include "ParserBase.h"
+﻿#include "ParserBase.h"
 #include "ParserOmited.h"
 #include "ParserRepeate.h"
 #include "ParserList.h"
@@ -32,24 +32,21 @@ auto ParseLexeme(const std::basic_string<CharType>& strInput, ParserType & parse
 
 using namespace Parsers;
 
+//#include "json_example_input.h"
+
 void main()
 {
 	using namespace Parsers;
 
-	std::string strBool = 
-	R"({ 
-		"NAME" = 123;
-		"NAME2" = "123";
 
-		"array" = [1,2,3, 
-								[1,2,3],
-								["s1", "s2"],
-								[true, true ,null]
-							];
-		"object" = {"almnlnlnlnljljlkjljljljlj" = { "b" = {};};};
-	};)";
-	
-	auto res = ParseLexeme(strBool, value, Skippers::space);
+	std::string str_json2 = std::string(R"(" 123\" " 123213)");
+	std::wstring str_float = L" 1.234e3f";
+	float f = 0;
+	wchar_t* b = str_float.data();
+	 wchar_t* e = b + str_float.length();
+
+	auto r = std::wcstof(b, &e);
+	//auto res = ParseLexeme(str_json_small, value, Skippers::space);
 
 	int a = 1;
 }

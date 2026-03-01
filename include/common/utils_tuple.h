@@ -4,7 +4,6 @@
 
 namespace tuple_utils
 {
-
 	namespace implementation// hide implementation from user inside 'implementation' namespace
 	{
 		template <typename T>

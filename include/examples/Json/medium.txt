@@ -1,0 +1,158 @@
+{
+  "catalog": {
+    "name": "Product Catalog",
+    "version": "2.3.1",
+    "last_updated": "2026-03-01T10:30:00Z",
+    "categories": [
+      {
+        "id": 1,
+        "name": "Electronics",
+        "description": "Electronic devices and accessories",
+        "products": [
+          {
+            "id": 101,
+            "name": "Smartphone X",
+            "price": 799.99,
+            "stock": 150,
+            "in_stock": true,
+            "specs": {
+              "screen": "6.5 inch OLED",
+              "ram": "8GB",
+              "storage": "256GB",
+              "camera": "48MP",
+              "os": "Android 14"
+            },
+            "colors": ["black", "white", "blue"],
+            "ratings": [4.5, 4.7, 4.8, 4.6, 4.9],
+            "average_rating": 4.7
+          },
+          {
+            "id": 102,
+            "name": "Laptop Pro",
+            "price": 1299.99,
+            "stock": 75,
+            "in_stock": true,
+            "specs": {
+              "cpu": "Intel i7",
+              "ram": "16GB",
+              "storage": "1TB SSD",
+              "display": "15.6 inch 4K",
+              "gpu": "NVIDIA RTX 3060"
+            },
+            "colors": ["silver", "space gray"],
+            "ratings": [4.8, 4.9, 4.7],
+            "average_rating": 4.8
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "name": "Books",
+        "description": "Fiction and non-fiction books",
+        "products": [
+          {
+            "id": 201,
+            "name": "The Great Gatsby",
+            "author": "F. Scott Fitzgerald",
+            "price": 12.99,
+            "stock": 200,
+            "in_stock": true,
+            "isbn": "978-0743273565",
+            "pages": 180,
+            "genres": ["fiction", "classic", "american literature"],
+            "published": 1925,
+            "ratings": [4.2, 4.0, 4.5, 4.3],
+            "average_rating": 4.25
+          },
+          {
+            "id": 202,
+            "name": "1984",
+            "author": "George Orwell",
+            "price": 10.50,
+            "stock": 150,
+            "in_stock": true,
+            "isbn": "978-0451524935",
+            "pages": 328,
+            "genres": ["fiction", "dystopian", "classic"],
+            "published": 1949,
+            "ratings": [4.7, 4.8, 4.6, 4.9],
+            "average_rating": 4.75
+          },
+          {
+            "id": 203,
+            "name": "Clean Code",
+            "author": "Robert C. Martin",
+            "price": 45.00,
+            "stock": 80,
+            "in_stock": true,
+            "isbn": "978-0132350884",
+            "pages": 464,
+            "genres": ["programming", "software engineering", "technical"],
+            "published": 2008,
+            "ratings": [4.8, 4.9, 4.7, 4.8, 4.9],
+            "average_rating": 4.82
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "name": "Home & Kitchen",
+        "description": "Home appliances and kitchenware",
+        "products": [
+          {
+            "id": 301,
+            "name": "Coffee Maker",
+            "price": 89.99,
+            "stock": 120,
+            "in_stock": true,
+            "brand": "KitchenPro",
+            "features": ["programmable", "auto shut-off", "12-cup capacity"],
+            "warranty_years": 2,
+            "ratings": [4.3, 4.4, 4.2],
+            "average_rating": 4.3
+          },
+          {
+            "id": 302,
+            "name": "Blender",
+            "price": 59.99,
+            "stock": 95,
+            "in_stock": true,
+            "brand": "BlendMaster",
+            "features": ["1000W motor", "6 blades", "multiple speeds"],
+            "warranty_years": 1,
+            "ratings": [4.5, 4.6, 4.4],
+            "average_rating": 4.5
+          }
+        ]
+      }
+    ],
+    "stats": {
+      "total_categories": 3,
+      "total_products": 7,
+      "total_stock": 870,
+      "average_price": 356.91,
+      "highest_rated": "Clean Code",
+      "lowest_stock": "Laptop Pro"
+    },
+    "metadata": {
+      "currency": "USD",
+      "tax_rate": 0.08,
+      "shipping_available": true,
+      "international_shipping": false,
+      "return_policy_days": 30,
+      "special_offers": ["black_friday", "cyber_monday"],
+      "tags": ["electronics", "books", "home", "kitchen", "test", "demo", "sample", "example", "data", "json"],
+      "notes": "This is a sample catalog for testing JSON parsers. It includes various data types, nested structures, arrays, and different value types to ensure comprehensive parser testing.",
+      
+      "escaped_chars": "Line 1\nLine 2\tTabbed\tText  'single'",
+      "empty_values": {
+        "empty_string": " ",
+        "empty_array": [],
+        "empty_object": {},
+        "null_field": null
+      },
+
+      "unicode_test": "Привет! 你好! こんにちは!  🚀🎉✨"
+    }
+  }
+}

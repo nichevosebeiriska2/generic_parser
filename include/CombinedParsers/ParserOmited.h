@@ -50,27 +50,27 @@ namespace Parsers
 		}
 
 		template<ConceptCharType CharType, ConceptParser SkipperParserType>
-		auto Parse(const CharType*& ptr_string, const CharType*& ptr_string_end, SkipperParserType&& skipper) 
+		auto Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, SkipperParserType&& skipper)
 		{
 			// its actually a scan function of internal parser. We`ll call it 'Parse()' for consistency of classes usage contract
 			return m_parser.Scan(ptr_string, ptr_string_end, skipper);
 		}
 
 		template<ConceptCharType CharType>
-		auto Parse(const CharType*& ptr_string, const CharType*& ptr_string_end)
+		auto Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
 		{
 			return m_parser.Scan(ptr_string, ptr_string_end);
 		}
 
 		template<ConceptCharType CharType, ConceptParser SkipperParserType>
-		auto Scan(const CharType*& ptr_string, const CharType*& ptr_string_end, SkipperParserType&& skipper)
+		auto Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, SkipperParserType&& skipper)
 		{
 			// its actually a scan function of internal parser. We`ll call it 'Parse()' for consistency of classes usage contract
 			return m_parser.Scan(ptr_string, ptr_string_end, skipper);
 		}
 
 		template<ConceptCharType CharType>
-		auto Scan(const CharType*& ptr_string, const CharType*& ptr_string_end)
+		auto Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
 		{
 			return m_parser.Scan(ptr_string, ptr_string_end);
 		}
