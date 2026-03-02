@@ -2,6 +2,8 @@
 
 #include <type_traits>
 
+#include "macro.h"
+
 using UINT = uint32_t;
 using INT  = int32_t;
 // concepts
@@ -15,7 +17,7 @@ template<ConceptCharType CharType>
 using constCharPtrRef = const CharType*&; // use it to declare const ptr reference to underlying char type in template Parse()/Scan() functions. 
 
 template<typename T, typename CharType>
-concept ConceptHasParseFunction = requires(T && t, const CharType* ptr)
+concept ConceptHasParseFunction = requires(T && t, constCharPtr<CharType> ptr)
 {
 	requires std::is_same_v<bool, decltype(t.Parse(ptr, ptr))>;
 };
@@ -37,9 +39,20 @@ concept ConceptParser = requires(T t)
 	requires std::is_move_constructible_v<T>;
 	requires std::is_copy_constructible_v<T>;
 
-	{ std::remove_cvref_t<decltype(t)>::IsOmited() } -> std::same_as<bool>;
-	//requires ConceptHasParseFunction<T, char> || ConceptHasParseFunction<T, wchar_t>;
-	//requires ConceptHasScanFunction<T, char> || ConceptHasScanFunction<T, wchar_t>;
+	{ std::remove_cvref_t<decltype(t)>::IsOmited()} -> std::same_as<bool>;
+
+	requires ConceptHasParseFunction<T, char> /*&& ConceptHasParseFunction<T, wchar_t>*/;
+	requires ConceptHasScanFunction<T, char> /*&& ConceptHasScanFunction<T, wchar_t>*/;
+};
+
+template<typename T> 
+concept ConceptScanner = requires(T t)
+{
+	requires std::is_move_constructible_v<T>;
+	requires std::is_copy_constructible_v<T>;
+
+	{t.GetNumberOfScannedChars() } -> std::same_as<int>;
+	requires ConceptHasScanFunction<T, char> && ConceptHasScanFunction<T, wchar_t>;
 };
 
 // \concepts
@@ -65,78 +78,4 @@ struct is_parser<ParserType> : std::true_type {};
 template<typename T>
 constexpr bool is_parser_v = is_parser<T>::value;
 
-// for ParserWithAction ActionType type 
-template<typename T>
-struct action_traits;
-
-template<typename ClassType, typename ReturnType, typename... Args>
-struct action_traits<ReturnType(ClassType::*)(Args...) const> {
-	using return_type = ReturnType;
-
-	static constexpr std::size_t num_of_arguments = sizeof...(Args);
-	static constexpr bool has_arguments = num_of_arguments != 0;
-
-	static_assert(num_of_arguments <= 1, "action_traits :: action must have 0 or 1 arguments");
-
-	template<std::size_t N>
-	struct argument {
-		static_assert(N < num_of_arguments, "Invalid argument index");
-		using type = std::tuple_element_t<N, std::tuple<Args...>>;
-	};
-};
-
-template<typename Lambda>
-using lambda_traits = action_traits<decltype(&Lambda::operator())>;
-
 // \metafunctions 
-
-// MACRO
-
-// You have to copy 'impl' parser to separate its result from ones upward in recursive call stack!
-// ImplementParsingRule links two objects : declaration and implementation (as a 'declaration' type not a specific object). 
-// Its literally implement Parse()/Scan() functions of 'declaration' parser type
-// With no copy in Parser() methods each call of 'declaration.Parse()' will be called from one 'impl' parser object.
-// But 'logical' lifetime of separate parser should be ended once it have Parse()/Scan() method called.
-// Otherwise 'impl' as a object (not a type!) will end up participating in several iterations
-// Every parser used as a 'impl' type has to have Copy() method
-
-#define ImplementParsingRule(decl, impl)\
-template<>\
-template<ConceptCharType CharType, typename TParserSkipper>\
-bool typename decltype(decl)::Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TParserSkipper& skipper)	\
-{\
-	auto copy = impl.Copy();\
-	bool parsed = copy.Parse(ptr_string, ptr_string_end, skipper);\
-	if (parsed) m_last_result = copy.GetValueAndReset(); \
-	return parsed;\
-}; \
-template<>\
-template<ConceptCharType CharType>\
-bool typename decltype(decl)::Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)	\
-{\
-	auto copy = impl.Copy();\
-	bool parsed = copy.Parse(ptr_string, ptr_string_end);\
-	if (parsed) m_last_result = copy.GetValueAndReset(); \
-	return parsed;\
-}; \
-template<>\
-template<ConceptCharType CharType, typename TParserSkipper>\
-bool typename decltype(decl)::Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TParserSkipper& skipper)	\
-{\
-	return impl.Scan(ptr_string, ptr_string_end, skipper);\
-}; \
-template<>\
-template<ConceptCharType CharType>\
-bool typename decltype(decl)::Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)	\
-{\
-	return impl.Scan(ptr_string, ptr_string_end);\
-}; \
-template<>\
-decltype(decl)::parsing_attribute typename decltype(decl)::GetValueAndReset(){\
-	return std::exchange(m_last_result, {});\
-}\
-\
-
-// \ MACRO
-
-

@@ -6,7 +6,6 @@
 #include "common.h"
 #include "utils_tuple.h"
 #include "ParserBase.h"
-#include "declarations.h"
 
 
 namespace Parsers
@@ -88,6 +87,23 @@ namespace Parsers
 			}
 			else // omited parsers use Scan() inside Parse() function so no overhead expected
 				return UseParser<CharType, SkipperType, index>(ptr_string, ptr_string_end, skipper);
+		}
+
+		template<ConceptCharType CharType, size_t index>
+		bool ParseSingleParser(auto &tup, constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
+		{
+			using tParser = std::remove_cvref_t<decltype(std::get<index>(tuple_parsers))>;
+			if constexpr(!is_unused_type_v<typename tParser::parsing_attribute>)
+			{
+				bool parsed = UseParser<CharType, index>(ptr_string, ptr_string_end);
+
+				if(parsed)
+					std::get<index>(tup) = std::get<index>(tuple_parsers).GetValueAndReset();
+
+				return parsed;
+			}
+			else // omited parsers use Scan() inside Parse() function so no overhead expected
+				return UseParserAsScanner<CharType, index>(ptr_string, ptr_string_end);
 		}
 
 		template<ConceptCharType CharType, ConceptParser SkipperType, size_t ... Ts>
@@ -203,7 +219,7 @@ namespace Parsers
 			return ParseImpl(ptr_string, ptr_string_end, skipper, std::make_index_sequence<std::tuple_size_v<decltype(tuple_parsers)>>{});
 		}
 
-		template<ConceptCharType CharType, ConceptParser SkipperType>
+		template<ConceptCharType CharType>
 		auto Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
 		{
 			return ParseImpl(ptr_string, ptr_string_end, std::make_index_sequence<std::tuple_size_v<decltype(tuple_parsers)>>{});

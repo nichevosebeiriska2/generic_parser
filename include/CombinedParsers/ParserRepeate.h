@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "ParserBase.h"
-#include "declarations.h"
 
 // parsing of repetitive patterns
 
@@ -69,7 +68,7 @@ public:
 			return number_of_repeats == count;
 	}
 
-	template<ConceptCharType CharType, ConceptParser ParserType>
+	template<ConceptCharType CharType>
 	bool Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
 	{
 		UINT count = 0;
@@ -106,7 +105,7 @@ public:
 			return number_of_repeats == count;
 	}
 
-	template<ConceptCharType CharType, ConceptParser ParserType>
+	template<ConceptCharType CharType>
 	bool Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
 	{
 		UINT count = 0;

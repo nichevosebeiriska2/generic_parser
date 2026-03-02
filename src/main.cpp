@@ -32,7 +32,6 @@ auto ParseLexeme(const std::basic_string<CharType>& strInput, ParserType & parse
 
 using namespace Parsers;
 
-//#include "json_example_input.h"
 
 #include <fstream>
 
@@ -46,13 +45,40 @@ std::string read_file(std::string strPathToFile)
 	return "";
 }
 
+template<ConceptParser TParser>
+bool f(TParser&& parser)
+{
+	return false;
+}
+
+
+template<ConceptScanner TScanner>
+void f_scanner(TScanner scanner)
+{
+
+}
 void main()
 {
 	using namespace Parsers;
 
 	using namespace Scanners;
 
-	std::string strJson = read_file("C:\\Users\\niche\\source\\repos\\generic_parser\\include\\examples\\Json\\medium.txt");
+	f(_string_lit{"1"});
+	f(_int{});
+
+	f(_int{} >> _int{}>> ")");
+	f(*_int{});
+	f(_int{} % ",");
+	f(omit(_int{}));
+	f(_int{} | _float{});
+
+	f_scanner(Scanners::_isalpha_str{});
+	Scanners::_isalpha_str aa;
+	const char *str_alpha = "abc1ds";
+	const wchar_t *wstr_alpha = L"ab1cds";
+	auto b1 =aa.Scan(str_alpha, str_alpha + 5);
+	auto b2 = aa.Scan(wstr_alpha, wstr_alpha + 5);
+	std::string strJson = read_file("C:\\Users\\dmileykin\\source\\repos\\generic_parser\\include\\examples\\Json\\medium.txt");
 	auto res = ParseLexeme(strJson, value, Skippers::space);
 
 	int a = 1;

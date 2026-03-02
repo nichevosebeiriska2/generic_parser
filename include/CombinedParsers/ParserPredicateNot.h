@@ -97,11 +97,6 @@ namespace Parsers {
 
 	};
 
-	//template<typename TLeft>
-	//ParserPredicateNot(TLeft&& left) -> ParserPredicateNot<TLeft>;
-
 	template<ConceptParser TParser>
 	using predicate_not = ParserPredicateNot<TParser>;
-
-
 };

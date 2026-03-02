@@ -52,25 +52,18 @@ auto return_json_value = [](auto&& arg) { return std::visit([](auto&& jsonValue)
 
 // \ actions
 
-auto parser_json_null = _string_lit{ "null" } [return_null];
-auto parser_json_bool = (_string_lit{ "true" } [return_bool_true] | _string_lit{ "false" } [return_bool_false]) [return_bool];
-
-// nothing special
-auto parser_json_int		= _int{};
-auto parser_json_float		= _float{};
-
-auto parser_escape_symbol	= _string_lit{ "\n" } | "\t" | "\r";
-auto parser_escaped_quote	= _string_lit{ "\\\"" };
-auto parser_not_quotes		= !(_string_lit{ "\"" });
-auto parser_string			= (*(parser_not_quotes >> (parser_escaped_quote | parser_escape_symbol | _char{}))) ; // if next symol is not " try to parse escaped quotes or escape symbol or any other char
+auto parser_string			= (*((!(_string_lit{"\""})) >> ((_string_lit{"\\\""}) | (_string_lit{"\n"} | "\t" | "\r") | type_char::_char{}))) ; // if next symol is not " try to parse escaped quotes or escape symbol or any other char
 auto parser_json_string		= raw((("\"" >> parser_string >> "\"") ))[return_raw_string];
 
-// array
-auto parser_json_array = ("[" >> (*(value % ",")) >> "]") [return_json_array];
-// object
-auto parser_json_object = ("{" >> *((parser_json_string >> ":" >> value) % ",") >> "}")[return_json_obj];
-// value
-auto parser_json_value = (parser_json_null | parser_json_bool  | parser_json_float | parser_json_int | parser_json_string | parser_json_array | parser_json_object)[return_json_value];
+auto parser_json_array = ("[" >> (*(value % ",")) >> "]") [return_json_array];// array
+auto parser_json_object = ("{" >> *((parser_json_string >> ":" >> value) % ",") >> "}")[return_json_obj];// object
+auto parser_json_value = (_string_lit{"null"}[return_null] 
+													| (_string_lit{"true"}[return_bool_true] | _string_lit{"false"}[return_bool_false])[return_bool]
+													| _float{} 
+													| _int{} 
+													| parser_json_string 
+													| parser_json_array 
+													| parser_json_object)[return_json_value];// value
 
 
 // implement parsing rules

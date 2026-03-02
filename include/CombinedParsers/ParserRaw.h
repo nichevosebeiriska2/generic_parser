@@ -8,6 +8,7 @@
 
 namespace Parsers {
 
+
 template<ConceptParser TParser>
 class ParserRaw
 {
@@ -18,9 +19,6 @@ class ParserRaw
 	TParser m_parser;
 public:
 	using parsing_attribute = std::string;
-
-protected:
-
 
 public:
 	ParserRaw(TParser&& p)
@@ -74,21 +72,7 @@ public:
 
 	constexpr auto GetValueAndReset()
 	{
-		constexpr auto l = []<ConceptCharType CharType>(PairStringPointers<CharType>&& pair)
-			{
-				if constexpr (std::is_same_v<CharType, char>)
-				{
-					return std::string{ pair.first, pair.second };
-				}
-				else if constexpr (std::is_same_v<CharType, wchar_t>)
-				{
-					return std::wstring{ pair.first, pair.second };
-				}
-				else
-					static_assert(false, "ParserRaw : GetValueAndReset() - forbidden char type");
-			};
-
-		return std::exchange(m_result, {});
+		return m_result;
 	}
 	void Reset()
 	{
@@ -105,7 +89,6 @@ public:
 	{
 		return ParserWrapperWithAction(*this, action);
 	}
-
 };
 
 template<typename TLeft>
@@ -116,6 +99,5 @@ ParserRaw(const TLeft& left) -> ParserRaw<TLeft>;
 
 template<ConceptParser TParser>
 using raw = ParserRaw<TParser>;
-
 
 };

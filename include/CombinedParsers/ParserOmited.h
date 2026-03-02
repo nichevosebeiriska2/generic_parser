@@ -8,7 +8,7 @@ namespace Parsers
 	template<ConceptParser TParser>
 	class omited
 	{
-		static_assert(!is_basic_non_literal_parser_v<TParser>, "template type parser is literal parser so it is omited by default!");
+		static_assert(is_basic_non_literal_parser_v<TParser>, "template type parser is literal parser so it is omited by default!");
 
 	public:
 		using internal_char_type = char;
@@ -75,7 +75,7 @@ namespace Parsers
 			return m_parser.Scan(ptr_string, ptr_string_end);
 		}
 
-		bool constexpr IsOmited()
+		static constexpr bool IsOmited()
 		{
 			return true;
 		}

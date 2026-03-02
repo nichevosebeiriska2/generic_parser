@@ -19,13 +19,12 @@ void UseSkipper(const CharType*& ptr_string, const CharType*& ptr_string_end, TP
 	}
 }
 
-template<template<typename> typename  TScanner, typename TResult>
+template<ConceptScanner  TScanner, typename TResult>
 class Parser
 {
 public:
 	template<ConceptCharType CharType>
-	using scanner_type = TScanner<CharType>;
-	using internal_char_type = TScanner<char>::internal_char_type;
+	using scanner_type = TScanner;
 	using parsing_attribute = TResult;
 
 protected:
@@ -67,7 +66,7 @@ protected:
 		template<ConceptCharType CharType>
 		bool Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
 		{
-			auto scanner = TScanner<CharType>{};
+			auto scanner = TScanner{};
 			
 			if(!scanner.Scan(ptr_string, ptr_string_end))
 				return false;
@@ -90,7 +89,7 @@ protected:
 		template<ConceptCharType CharType>
 		bool Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
 		{
-			auto scanner = TScanner<CharType>{};
+			auto scanner = TScanner{};
 			const bool scanned = scanner.Scan(ptr_string, ptr_string_end);
 
 			if(scanned)
@@ -128,10 +127,6 @@ protected:
 	public:
 		using parsing_attribute = tag_attribute_unused;
 		using scanner_type = TScanner<CharType>;
-		using internal_char_type = scanner_type::internal_char_type;
-
-		using const_pointer = const internal_char_type *;
-		using const_pointer_ref = const internal_char_type *&;
 
 	protected:
 		scanner_type m_scanner;
@@ -187,7 +182,6 @@ protected:
 		template<ConceptCharType CharType>
 		bool Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
 		{
-			static_assert(std::is_same_v<CharType, internal_char_type>, "ParserLiteral::Scan(const CharType *&ptr_string, const auto *&ptr_string_end, const auto &skipper) - char type should be the same as internal_char_type");
 			bool scanned = m_scanner.Scan(ptr_string, ptr_string_end);
 			if (scanned)
 				ptr_string += m_scanner.GetNumberOfScannedChars();
@@ -195,7 +189,7 @@ protected:
 			return scanned;
 		}
 
-		static bool consteval IsOmited()
+		static bool constexpr IsOmited()
 		{
 			return true;
 		}

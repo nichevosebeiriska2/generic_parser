@@ -141,45 +141,6 @@ constexpr int ScanStringForString<wchar_t>(const wchar_t *ptr_to_string, const w
 	return (ptr_temp - ptr_to_string);
 }
 
-template<ConceptCharType CharType>
-constexpr int ScanStringPrintableChars(const CharType* ptr_to_string, const CharType* ptr_to_string_end);
-
-template<>
-constexpr int ScanStringPrintableChars<char>(const char* ptr_to_string, const char* ptr_to_string_end)
-{
-	auto ptr_temp = ptr_to_string;
-	while (ptr_temp < ptr_to_string_end
-		&& std::isprint(*ptr_temp))
-		ptr_temp++;
-
-	return (ptr_temp - ptr_to_string);
-}
-
-template<>
-constexpr int ScanStringPrintableChars<wchar_t>(const wchar_t* ptr_to_string, const wchar_t* ptr_to_string_end)
-{
-	auto ptr_temp = ptr_to_string;
-	while (ptr_temp < ptr_to_string_end
-		&& std::iswprint(*ptr_temp))
-		ptr_temp++;
-
-	return (ptr_temp - ptr_to_string);
-}
-
-template<ConceptCharType CharType>
-constexpr int ScanStringPrintableCharSymbol(const CharType* ptr_to_string, const CharType* ptr_to_string_end);
-
-template<>
-constexpr int ScanStringPrintableCharSymbol<char>(const char* ptr_to_string, const char* ptr_to_string_end)
-{
-	return std::isprint(*ptr_to_string) ? 1 : 0;
-}
-
-template<>
-constexpr int ScanStringPrintableCharSymbol<wchar_t>(const wchar_t* ptr_to_string, const wchar_t* ptr_to_string_end)
-{
-	return std::iswprint(*ptr_to_string) ? 1 : 0;
-}
 
 template<ConceptCharType CharType>
 constexpr int ScanStringForStringAlnum(const CharType *ptr_to_string, const CharType *ptr_to_string_end);

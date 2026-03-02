@@ -118,13 +118,15 @@ namespace Parsers
 			// this parameter pack extension stops on first successfull Parse() call
 			auto lambda = [&]<size_t index>() constexpr
 			{
-				if constexpr (std::get< index>(tuple_parsers).IsOmited())
+				using t = std::tuple_element_t<index, decltype(tuple_parsers)>;
+				if constexpr(!std::remove_cvref_t<t>::IsOmited())
 				{
 					auto ptr_begin_temp = ptr_string;
 					bool parsed = std::get< index>(tuple_parsers).Parse(ptr_string, ptr_string_end);
 
-					if (parsed)
-						m_result = std::get< index>(tuple_parsers).GetValueAndReset();
+					if(parsed)
+						m_result.emplace<index>(std::get< index>(tuple_parsers).GetValueAndReset());
+
 					else
 						ptr_string = ptr_begin_temp;
 

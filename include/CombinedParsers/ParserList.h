@@ -56,6 +56,41 @@ namespace Parsers
 			return parsed_required_num_of_arg;
 		}
 
+		template<ConceptCharType CharType>
+		auto ParseImpl(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
+		{
+			constCharPtrRef<CharType> ptr_last_parsed_value_end = ptr_string;
+
+			// what would happen if skipper and parser_delimitar has the same single symbol( space for example ) ?
+			// seems like i have to implement some additional requirements for this case
+
+			UINT count = m_num_of_elements_to_parse;
+			bool delimiter_scanned = true;
+
+			while(m_parser.Parse(ptr_string, ptr_string_end) && delimiter_scanned && count != 0)
+			{
+				m_vector_result.emplace_back(m_parser.GetValueAndReset());
+				ptr_last_parsed_value_end = ptr_string;
+				count--;
+
+				delimiter_scanned = m_parser_delimiter.Scan(ptr_string, ptr_string_end);
+			}
+
+			ptr_string = ptr_last_parsed_value_end;
+
+			bool parsed_required_num_of_arg = false;
+			if(m_num_of_elements_to_parse < 0)
+				parsed_required_num_of_arg = m_num_of_elements_to_parse == CONST_NUMBER_OF_CHARS_AT_LEAST_ONE ? !m_vector_result.empty() : true;
+			else
+				parsed_required_num_of_arg = m_vector_result.size() == m_num_of_elements_to_parse;
+
+			if(!parsed_required_num_of_arg)
+				Reset();
+
+
+			return parsed_required_num_of_arg;
+		}
+
 
 		template<ConceptCharType CharType, ConceptParser SkipperType>
 		auto ScanImpl(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, SkipperType& skipper)
@@ -72,6 +107,26 @@ namespace Parsers
 			ptr_string = ptr_last_parsed_value_end;
 
 			if (m_num_of_elements_to_parse < 0)
+				return m_num_of_elements_to_parse == CONST_NUMBER_OF_CHARS_AT_LEAST_ONE ? !m_vector_result.empty() : true;
+
+			return m_vector_result.size() == m_num_of_elements_to_parse;
+		}
+
+		template<ConceptCharType CharType>
+		auto ScanImpl(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
+		{
+			constCharPtrRef<CharType> ptr_last_parsed_value_end = ptr_string;
+
+			// what would happen if skipper and parser_delimitar has the same single symbol( space for example ) ?
+			// seems like i have to implement some additional requirements for this case
+			INT count = m_num_of_elements_to_parse;
+
+			while(m_parser.Scan(ptr_string, ptr_string_end) && m_parser_delimiter.Scan(ptr_string, ptr_string_end) && (count--) != 0)
+				ptr_last_parsed_value_end = ptr_string;
+
+			ptr_string = ptr_last_parsed_value_end;
+
+			if(m_num_of_elements_to_parse < 0)
 				return m_num_of_elements_to_parse == CONST_NUMBER_OF_CHARS_AT_LEAST_ONE ? !m_vector_result.empty() : true;
 
 			return m_vector_result.size() == m_num_of_elements_to_parse;
@@ -100,10 +155,22 @@ namespace Parsers
 			return ParseImpl(ptr_string, ptr_string_end, skipper);
 		}
 
+		template<ConceptCharType CharType>
+		auto Parse(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
+		{
+			return ParseImpl(ptr_string, ptr_string_end);
+		}
+
 		template<ConceptCharType CharType, ConceptParser SkipperType>
 		auto Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, SkipperType& skipper)
 		{
 			return ScanImpl(ptr_string, ptr_string_end, skipper);
+		}
+
+		template<ConceptCharType CharType>
+		auto Scan(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
+		{
+			return ScanImpl(ptr_string, ptr_string_end);
 		}
 
 		auto GetValueAndReset()
@@ -120,7 +187,7 @@ namespace Parsers
 
 		static constexpr bool IsOmited()
 		{
-			return decltype(m_parser)::IsOmited();
+			return TParser::IsOmited();
 		}
 
 		auto operator [](auto action)
