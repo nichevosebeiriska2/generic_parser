@@ -98,4 +98,34 @@ ParserWrapperWithAction(P&&, A&&) -> ParserWrapperWithAction<std::remove_cvref_t
 template<typename P, typename A>
 using parser_with_action = ParserWrapperWithAction<P, A>;
 
+
+#include "Context.h"
+
+template<ConceptParser TParser, typename TAction>
+class ContextualParserWithAction
+{
+	TParser m_parser;
+	TAction m_action;
+
+public:
+	ContextualParserWithAction(TParser&& parser, TAction&& action)
+		: m_parser{std::forward<TParser>(parser)}
+		, m_action{std::forward<TAction>(action)}
+	{}
+
+	template<ConceptCharType CharType, typename TContext, typename TAttribute>
+	bool ParseNew(constCharPtr<CharType> ptr_string, constCharPtr<CharType> ptr_string_end, TContext &&context, TAttribute &_attribute)
+	{
+		int i = 0;
+		if(m_parser.ParseNew(ptr_string, ptr_string_end, context, i))
+		{
+			CParsingResultContext ctx_action(_attribute, i);
+			m_action(ctx_action);
+		}
+		//CParsingResultContext parse_context{_attribute, }
+		return false;
+	}
+
+};
+
 };

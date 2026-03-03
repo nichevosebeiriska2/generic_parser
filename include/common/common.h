@@ -69,6 +69,23 @@ struct is_unused_type<tag_attribute_unused> : public std::true_type {};
 template<typename T>
 constexpr bool is_unused_type_v = is_unused_type<T>::value;
 
+struct tag_skipper_non
+{
+}; // compile time tag of no attribute parser
+
+template<typename T>
+struct is_skipper_non_type : public std::false_type
+{
+};
+
+template<>
+struct is_skipper_non_type<tag_skipper_non> : public std::true_type
+{
+};
+
+template<typename T>
+constexpr bool is_skipper_non_type_v = is_skipper_non_type<T>::value;
+
 template<typename T>
 struct is_parser : std::false_type {};
 

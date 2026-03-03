@@ -3,6 +3,7 @@
 #include <string>
 #include "scanner_aliases.h"
 #include "ParserWithAction.h"
+#include "Context.h"
 
 namespace Parsers
 {
@@ -94,6 +95,38 @@ protected:
 
 			if(scanned)
 				ptr_string += scanner.GetNumberOfScannedChars();
+
+			return scanned;
+		}
+
+		template<ConceptCharType CharType>
+		auto ParseValue(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
+		{
+			return 0;
+		}
+
+		template<ConceptCharType CharType,typename TContext>
+		bool ParseNew(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TContext&& context, auto& attribute)
+		{
+			context.UseSkipper(ptr_string, ptr_string_end);
+
+			auto scanner = TScanner{};
+			const bool scanned = scanner.Scan(ptr_string, ptr_string_end);
+			if(scanned)
+			{
+				if (!context.IsOmited())
+				{
+					attribute = 123;
+					//attribute = ParseValue(ptr_string, ptr_string_end);
+					/*if(auto [parsed, result] = ParseFromPointers(ptr_string, ptr_string_end); parsed)
+					{
+						m_result = result;
+						ptr_string += scanner.GetNumberOfScannedChars();
+					}*/
+					//else
+						return true;
+				}
+			}
 
 			return scanned;
 		}
