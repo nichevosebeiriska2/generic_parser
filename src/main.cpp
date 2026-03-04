@@ -75,20 +75,81 @@ auto Parse(const std::basic_string<CharType> &strInput, ParserType &parser, TRes
 	//	return  parser.Parse(strBegin, strEnd, skipper) ? std::make_optional(parser.GetValueAndReset()) : std::nullopt;
 }
 
+template<typename ... TParsers>
+class ParserSeqNew
+{
+	std::tuple<TParsers...> m_tuple_parsers;
+
+protected:
+	constexpr static auto DeduceResultType()
+	{
+
+	}
+
+public:
+
+	ParserSeqNew(TParsers ... parsers)
+		: m_tuple_parsers{parsers ...}
+	{}
+
+
+	template<ConceptCharType CharType, typename TContext>
+	consteval static auto GetReturnType()
+	{
+		auto lambda_deduce = []<typename ... Ts>(Ts ... parsers)
+		{
+			return std::make_tuple(Ts{}.GetReturnType<CharType, TContext>() ...);
+		};
+
+		return std::apply(lambda_deduce, decltype(m_tuple_parsers){});
+	}
+
+	template<ConceptCharType CharType, typename TContext>
+	bool ParseNew(constCharPtrRef<CharType> ptr_string
+								, constCharPtrRef<CharType> ptr_string_end
+								, TContext &&context
+								, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &attribute)
+	{
+		//auto tup_result = GetReturnType<CharType, std::remove_cvref_t<TContext>>();
+
+		return true;
+		//std::tuple
+		//context.UseSkipper(ptr_string, ptr_string_end);
+		//return TScanner{}.ParseFunction(ptr_string, ptr_string_end, context, attribute);
+	}
+
+	
+};
+
 void f_test_new_context()
 {
-	ContextualParserWithAction parser_with_action(_int{}, 
-																								[](auto& ctx){ 
-		return std::to_string(ctx.);
-	});
+	Context ctx{Skippers::space};
 
-	std::string str_result;
-	const char *str = "123 asd";
+	Scanners::CScannerFloat s_f;
+
+	const char *str = "11";
 	const char *str_end = str + std::strlen(str);
 
-	Context ctx{Skippers::space};
-	parser_with_action.ParseNew(str, str_end, ctx, str_result);
+	const wchar_t *wstr = L"213";
+	const wchar_t *wstr_end = wstr + std::wcslen(wstr);
+	wchar_t *end;
+	char *endc;
+
+	ParserWithContext<Scanners::scanner_float_ctx> parser;
+	ParserLiteralWithContext ps(std::basic_string_view{"123"});
+
+	ParserSeqNew seq2(parser, parser);
+
+	float f = 1;
+	parser.ParseNew(str, str_end, ctx, f);
+	parser.ParseNew(wstr, wstr_end, (Context{Skippers::wchar::space}), f);
+
+	auto tup = seq2.GetReturnType<char, decltype(ctx)>();
+
+	seq2.ParseNew(str, str_end, ctx, tup);
 }
+
+//#include "g"
 
 void main()
 {
@@ -127,7 +188,7 @@ void main()
 	auto ctx_case_sensetive = CaseSensetiveFromThis(Ctx2);
 	auto ctx_case_inse = CaseInsensetiveFromThis(Ctx2);
 	int i = 0;
-	parser_int.ParseNew(str_alpha, str_alpha_end, ctx_space, i);
+	//parser_int.ParseNew(str_alpha, str_alpha_end, ctx_space, i);
 
 	std::tuple<int, int> tup;
 	int ii;

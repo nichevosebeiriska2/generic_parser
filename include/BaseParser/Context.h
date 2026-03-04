@@ -18,6 +18,9 @@ public:
 	SkipperType _skipper;
 
 public:
+
+	//Context(){};
+
 	template<typename TSkipper>
 	Context(TSkipper &&skipper)
 		: _skipper{std::forward<TSkipper>(skipper)}
@@ -46,6 +49,11 @@ public:
 		{
 			::UseSkipper(ptr_string, ptr_string_end, _skipper);
 		}
+	}
+
+	constexpr static bool IsOmitedStatic()
+	{
+		return _omited;
 	}
 
 	constexpr bool IsOmited()

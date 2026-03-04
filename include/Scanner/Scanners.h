@@ -4,6 +4,7 @@
 
 #include "common.h"
 #include "Constants.h"
+#include "Context.h"
 #include "ScanningFunctions.h"
 
 namespace Scanners
@@ -299,5 +300,88 @@ namespace Scanners
 	DEFINE_STRING_FROM_STR_FUNCTION(isxdigit_str, std::isxdigit, std::iswxdigit);
 	DEFINE_STRING_FROM_STR_FUNCTION(islower_str, std::islower, std::iswlower);
 	DEFINE_STRING_FROM_STR_FUNCTION(isupper_str, std::isupper, std::iswupper);
+
+
+#include "scanners_num_ctx.h"
+#include "scanners_char_ctx.h"
+
+	template<ConceptCharType OwnCharType>
+	class CScannerStringRaw
+	{
+		std::basic_string_view<OwnCharType> m_literal;
+
+	public:
+		constexpr CScannerStringRaw(std::basic_string_view<OwnCharType> literal) noexcept
+			: m_literal{literal}
+		{};
+
+		template<ConceptCharType CharType, typename TContext>
+		consteval static auto GetType()
+		{
+			static_assert(std::is_same_v<CharType, OwnCharType>, "CScannerStringRaw::GetType() : own char type != char type from ParseFunction");
+			return std::basic_string<OwnCharType>{};
+		}
+
+		template<ConceptCharType CharType, typename TContext>
+		bool ParseFunction(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TContext &&context, std::type_identity_t<decltype(GetType<CharType, TContext>())> &_val)
+		{
+			CharType *ptr_end;
+
+			if(ptr_string_end - ptr_string < m_literal.length())
+				return false;
+
+			if constexpr(std::is_same_v<CharType, char>)
+			{
+				const bool equal = std::strncmp(ptr_string, m_literal.data(), m_literal.length()) == 0;
+
+				if(equal)
+				{
+					ptr_string += m_literal.length();
+					if constexpr(!std::remove_cvref_t<TContext>::IsOmitedStatic())
+						_val = std::basic_string{m_literal};
+				}
+
+				
+				return equal;
+			}
+			else if constexpr(std::is_same_v<CharType, wchar_t>)
+			{
+				const bool equal = std::wcsncmp(ptr_string, m_literal.data(), m_literal.length()) == 0;
+
+				if(equal)
+				{
+					ptr_string += m_literal.length();
+					if constexpr(!std::remove_cvref_t<TContext>::IsOmitedStatic())
+						_val = std::basic_string{m_literal};
+				}
+				
+				return equal;
+			}
+			else
+				static_assert(false, "CScannerFloat::Parse() : forbidden char type");
+		}
+
+	};
+
+};
+
+namespace traits
+{
+	namespace scanners
+	{
+		// this monstrosity should be hidden inside BaseParser class
+		template<typename TScanner, ConceptCharType CharType, typename TContext>
+		struct attribute
+		{
+			// why the fuck i have to call static function with rvalue object i dont get it.
+			// compiler does really know function is static but it fails to parse it like TScanner::GetType 
+			// TScanner{}. and TScanner:: is semantically pretty much the same in compile-time but ...
+			using type = decltype(TScanner{}.GetType<CharType, TContext>());
+		};
+
+
+		template<typename TScanner, ConceptCharType CharType, typename TContext>
+		using attribute_t = attribute<TScanner, CharType, TContext>::type;
+	};
 
 };

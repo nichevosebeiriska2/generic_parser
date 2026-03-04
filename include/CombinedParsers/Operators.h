@@ -121,5 +121,13 @@ namespace Parsers
 	namespace Skippers
 	{
 		inline auto space = Parsers::_string_lit{" "} | "\t" | "\n" ;
+
+		namespace wchar
+		{
+			inline auto space = Parsers::_string_lit{L" "} | L"\t" | L"\n";
+		}
 	}
+
+	
+
 }
