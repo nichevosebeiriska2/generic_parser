@@ -267,7 +267,7 @@ public:
 	}
 
 	template<ConceptCharType CharType, typename TContext>
-	constexpr static auto GetReturnType()
+	consteval static auto GetReturnType()
 	{
 		return traits::scanners::attribute_t<TScanner, CharType, std::remove_cvref_t<TContext>>{};
 	}
@@ -295,7 +295,13 @@ public:
 							, traits::scanners::attribute<scanner_type, CharType, std::remove_cvref_t<TContext>>::type &attribute)
 	{
 		context.UseSkipper(ptr_string, ptr_string_end);
-		return scanner_type{}.ParseFunction(ptr_string, ptr_string_end, context, attribute);
+		return m_scanner.ParseFunction(ptr_string, ptr_string_end, context, attribute);
+	}
+
+	template<ConceptCharType CharType, typename TContext>
+	consteval static auto GetReturnType()
+	{
+		return traits::scanners::attribute_t<TScanner<CharType>, CharType, std::remove_cvref_t<TContext>>{};
 	}
 };
 

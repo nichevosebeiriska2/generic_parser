@@ -67,7 +67,7 @@ namespace tuple_utils
 	}
 
 	template<size_t ... Ts, typename ... TParser>
-	void tuple_parsers_reset_al_impl(std::index_sequence<Ts...> indices, std::tuple<TParser...> tuple)
+	void tuple_parsers_reset_all_impl(std::index_sequence<Ts...> indices, std::tuple<TParser...> tuple)
 	{
 		auto lambda_reset_if_not_omited = [](auto&& parser)
 			{
@@ -82,7 +82,7 @@ namespace tuple_utils
 	void tuple_parsers_reset_all(std::tuple<TParser...> tuple)
 	{
 		auto indices = std::make_index_sequence<sizeof...(TParser)>{};
-		tuple_parsers_reset_al_impl(indices, tuple);
+		tuple_parsers_reset_all_impl(indices, tuple);
 	}
 
 	//template<size_t ... Ts, typename ... TParser>

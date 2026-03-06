@@ -75,33 +75,39 @@ auto Parse(const std::basic_string<CharType> &strInput, ParserType &parser, TRes
 	//	return  parser.Parse(strBegin, strEnd, skipper) ? std::make_optional(parser.GetValueAndReset()) : std::nullopt;
 }
 
-template<typename ... TParsers>
-class ParserSeqNew
+namespace traits::parsers
 {
-	std::tuple<TParsers...> m_tuple_parsers;
-
-protected:
-	constexpr static auto DeduceResultType()
+	template<typename TParser, ConceptCharType CharType, typename TContext>
+	struct attribute
 	{
+		using type = decltype(TParser::template GetReturnType<CharType, TContext>());
+	};
 
-	}
+	template<typename TParser, ConceptCharType CharType, typename TContext>
+	using attribute_t = attribute<TParser, CharType, TContext>::type;
+
+};
+
+template<typename TParser>
+class ParserRepeateNew
+{
+	TParser m_parser;
 
 public:
 
-	ParserSeqNew(TParsers ... parsers)
-		: m_tuple_parsers{parsers ...}
+	ParserRepeateNew(TParser && parser)
+		: m_parser{parser}
+	{}
+
+	ParserRepeateNew(const TParser &parser)
+		: m_parser{parser}
 	{}
 
 
 	template<ConceptCharType CharType, typename TContext>
 	consteval static auto GetReturnType()
 	{
-		auto lambda_deduce = []<typename ... Ts>(Ts ... parsers)
-		{
-			return std::make_tuple(Ts{}.GetReturnType<CharType, TContext>() ...);
-		};
-
-		return std::apply(lambda_deduce, decltype(m_tuple_parsers){});
+		return std::vector<decltype(TParser::template GetReturnType<CharType, TContext>())>{};
 	}
 
 	template<ConceptCharType CharType, typename TContext>
@@ -110,27 +116,239 @@ public:
 								, TContext &&context
 								, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &attribute)
 	{
-		//auto tup_result = GetReturnType<CharType, std::remove_cvref_t<TContext>>();
+		bool parsed = true;
+		context.UseSkipper(ptr_string, ptr_string_end);// pre-skip
 
-		return true;
-		//std::tuple
-		//context.UseSkipper(ptr_string, ptr_string_end);
-		//return TScanner{}.ParseFunction(ptr_string, ptr_string_end, context, attribute);
+		while(m_parser.ParseNew(ptr_string, ptr_string_end, context, attribute.emplace_back()))// what about non default/copy constructible? looks like we have a problems is case TParser has parsing action
+			context.UseSkipper(ptr_string, ptr_string_end);
+
+		attribute.pop_back();
+
+		return !attribute.empty();
 	}
-
-	
 };
 
-void f_test_new_context()
+
+template<typename TParser, typename TParserDelimiter>
+class ParserListNew
+{
+	TParser m_parser;
+	TParserDelimiter m_parser_delimiter;
+
+public:
+
+	ParserListNew(TParser &&parser, TParserDelimiter&& delimiter)
+		: m_parser{parser}
+	{}
+
+	ParserListNew(const TParser &parser, const TParserDelimiter &delimiter)
+		: m_parser{parser}
+		, m_parser_delimiter{delimiter}
+	{}
+
+
+	template<ConceptCharType CharType, typename TContext>
+	consteval static auto GetReturnType()
+	{
+		return std::vector<decltype(TParser::template GetReturnType<CharType, TContext>())>{};
+	}
+
+	template<ConceptCharType CharType, typename TContext>
+	bool ParseNew(constCharPtrRef<CharType> ptr_string
+								, constCharPtrRef<CharType> ptr_string_end
+								, TContext &&context
+								, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &attribute)
+	{
+		bool delimiter_parser = true;
+		context.UseSkipper(ptr_string, ptr_string_end);// pre-skip
+
+		while(m_parser.ParseNew(ptr_string, ptr_string_end, context, attribute.emplace_back()) && delimiter_parser)// what about non default/copy constructible? looks like we have a problems is case TParser has parsing action
+		{
+			context.UseSkipper(ptr_string, ptr_string_end);
+
+			auto delimiter_attr = decltype(TParserDelimiter::template GetReturnType<CharType, TContext>()){};
+			delimiter_parser = m_parser_delimiter.ParseNew(ptr_string, ptr_string_end, context, delimiter_attr);
+		}
+
+		attribute.pop_back();
+
+		return !attribute.empty();
+	}
+};
+
+template<typename ... TParsers>
+class ParserSeqNew
+{
+	std::tuple<TParsers...> m_tuple_parsers;
+
+protected:
+
+	template<ConceptCharType CharType, typename TContext, size_t ... Ts>
+	bool ParseImpl(constCharPtrRef<CharType> ptr_string
+								 , constCharPtrRef<CharType> ptr_string_end
+								 , TContext &&context
+								 , std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &attribute
+								 , std::index_sequence<Ts...> seq)
+	{
+		return (std::get<Ts>(m_tuple_parsers).ParseNew(ptr_string, ptr_string_end, context, std::get<Ts>(attribute)) && ...);
+	}
+
+	template<ConceptCharType CharType, typename TContext, size_t...Ts>
+	consteval static auto GetReturnTypeImpl(std::index_sequence<Ts...> seq)
+	{
+		return std::make_tuple(std::tuple_element_t<Ts, decltype(m_tuple_parsers)>::template GetReturnType<CharType, TContext>() ...);
+	}
+
+public:
+
+	ParserSeqNew(TParsers ... parsers)
+		: m_tuple_parsers{parsers ...}
+	{
+	}
+
+
+	template<ConceptCharType CharType, typename TContext>
+	consteval static auto GetReturnType()
+	{
+		return GetReturnTypeImpl<CharType, TContext>(std::make_index_sequence<std::tuple_size_v<decltype(m_tuple_parsers)>>{});
+	}
+
+	template<ConceptCharType CharType, typename TContext>
+	bool ParseNew(constCharPtrRef<CharType> ptr_string
+								, constCharPtrRef<CharType> ptr_string_end
+								, TContext &&context
+								, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &attribute)
+	{
+		return ParseImpl(ptr_string, ptr_string_end, context, attribute, std::make_index_sequence<sizeof...(TParsers)>{});
+	}
+};
+
+template<typename ... TParsers>
+class ParserAltNew
+{
+	std::tuple<TParsers...> m_tuple_parsers;
+
+protected:
+
+	template<ConceptCharType CharType, typename TContext, size_t ... Ts>
+	bool ParseImpl(constCharPtrRef<CharType> ptr_string
+								 , constCharPtrRef<CharType> ptr_string_end
+								 , TContext &&context
+								 , std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &attribute
+								 , std::index_sequence<Ts...> seq)
+	{
+		return (std::get<Ts>(m_tuple_parsers).ParseNew(ptr_string, ptr_string_end, context, std::get<Ts>(attribute)) || ...);
+	}
+
+	template<ConceptCharType CharType, typename TContext, size_t...Ts>
+	consteval static auto GetReturnTypeImpl(std::index_sequence<Ts...> seq)
+	{
+		return std::variant<decltype(std::tuple_element_t<Ts, decltype(m_tuple_parsers)>::template GetReturnType<CharType, TContext>()) ... >{};
+	}
+
+public:
+
+	ParserAltNew(TParsers ... parsers)
+		: m_tuple_parsers{parsers ...}
+	{
+	}
+
+
+	template<ConceptCharType CharType, typename TContext>
+	consteval static auto GetReturnType()
+	{
+		return GetReturnTypeImpl<CharType, TContext>(std::make_index_sequence<std::tuple_size_v<decltype(m_tuple_parsers)>>{});
+	}
+
+	template<ConceptCharType CharType, typename TContext>
+	bool ParseNew(constCharPtrRef<CharType> ptr_string
+								, constCharPtrRef<CharType> ptr_string_end
+								, TContext &&context
+								, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &attribute)
+	{
+		return ParseImpl(ptr_string, ptr_string_end, context, attribute, std::make_index_sequence<sizeof...(TParsers)>{});
+	}
+};
+
+template<typename TParser, typename TAction>
+class ParserWithActionNew
+{
+protected:
+	TParser m_parser;
+	TAction m_action;
+public:
+
+	template<ConceptCharType CharType, typename TContext>
+	consteval static auto GetReturnType()
+	{
+		using tParserResultType = typename traits::parsers::attribute_t<TParser, CharType, std::remove_cvref_t<TContext>>;
+
+		//CParsingResultContext ctx_result{attribute, parser_result};
+		//return std::invoke_result_t<TAction, tParserResultType>{};
+		return 1;
+	}
+
+	ParserWithActionNew(TParser&& parser, TAction&& action)
+		: m_parser{parser}
+		, m_action{action}
+	{}
+
+	ParserWithActionNew(const TParser &parser, TAction &&action)
+		: m_parser{parser}
+		, m_action{action}
+	{}
+
+	template<ConceptCharType CharType, typename TContext>
+	bool ParseNew(constCharPtrRef<CharType> ptr_string
+								, constCharPtrRef<CharType> ptr_string_end
+								, TContext &&context
+								, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &attribute)
+	{
+		//return ParseImpl(ptr_string, ptr_string_end, context, attribute, std::make_index_sequence<sizeof...(TParsers)>{});
+		using tParserResultType = typename traits::parsers::attribute_t<TParser, CharType, /*std::remove_cvref_t<TContext>*/decltype(context)>;
+		tParserResultType parser_result{};
+
+		bool parsed = m_parser.ParseNew(ptr_string, ptr_string_end, context, parser_result);
+
+		if(parsed)
+		{
+			CParsingResultContext ctx_result{attribute, parser_result};
+			m_action(ctx_result);
+		}
+
+		return parsed;
+	}
+};
+
+
+
+
+template<ConceptCharType CharType>
+bool ParseLexeme2(std::basic_string<CharType> & strInput, auto& parser)
 {
 	Context ctx{Skippers::space};
 
+	const CharType *ptr_begin = strInput.data();
+	const CharType *ptr_end = ptr_begin + strInput.length();
+
+	auto result = traits::parsers::attribute_t<std::remove_cvref_t<decltype(parser)>, CharType, decltype(ctx)>{};
+
+	return parser.ParseNew(ptr_begin, ptr_end, ctx, result);
+}
+
+
+void f_test_new_context()
+{
+	Context ctx{Skippers::wchar::space};
+
 	Scanners::CScannerFloat s_f;
 
-	const char *str = "11";
+	std::string strInput = "12 123 11";
+
+	const char *str = "11 123 11";
 	const char *str_end = str + std::strlen(str);
 
-	const wchar_t *wstr = L"213";
+	const wchar_t *wstr = L"11 123 11";
 	const wchar_t *wstr_end = wstr + std::wcslen(wstr);
 	wchar_t *end;
 	char *endc;
@@ -138,15 +356,23 @@ void f_test_new_context()
 	ParserWithContext<Scanners::scanner_float_ctx> parser;
 	ParserLiteralWithContext ps(std::basic_string_view{"123"});
 
-	ParserSeqNew seq2(parser, parser);
+	ParserListNew listNew(parser, ps);
+	ParserSeqNew seq2(parser, ps, parser);
+	ParserRepeateNew rep(parser);
+	ParserAltNew alt(parser, ps);
+	ParserWithActionNew action(parser, [](auto& ctx){return 1;});
 
-	float f = 1;
-	parser.ParseNew(str, str_end, ctx, f);
-	parser.ParseNew(wstr, wstr_end, (Context{Skippers::wchar::space}), f);
+	ParseLexeme2(strInput, action);
+	ParseLexeme2(strInput, alt);
+	ParseLexeme2(strInput, listNew);
+	ParseLexeme2(strInput, rep);
+	ParseLexeme2(strInput, seq2);
 
-	auto tup = seq2.GetReturnType<char, decltype(ctx)>();
+	//auto r_l = ps.GetReturnType<wchar_t, decltype(ctx)>();
+	//ps.ParseNew(wstr, wstr_end, ctx, r_l);
+	//auto res = seq2.GetReturnType<wchar_t, decltype(ctx)>();
+	//seq2.ParseNew(wstr, wstr_end, ctx, res);
 
-	seq2.ParseNew(str, str_end, ctx, tup);
 }
 
 //#include "g"

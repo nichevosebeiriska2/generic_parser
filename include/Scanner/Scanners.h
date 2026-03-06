@@ -338,7 +338,7 @@ namespace Scanners
 				{
 					ptr_string += m_literal.length();
 					if constexpr(!std::remove_cvref_t<TContext>::IsOmitedStatic())
-						_val = std::basic_string{m_literal};
+						_val = m_literal;
 				}
 
 				
@@ -352,7 +352,7 @@ namespace Scanners
 				{
 					ptr_string += m_literal.length();
 					if constexpr(!std::remove_cvref_t<TContext>::IsOmitedStatic())
-						_val = std::basic_string{m_literal};
+						_val = m_literal;
 				}
 				
 				return equal;
@@ -373,10 +373,7 @@ namespace traits
 		template<typename TScanner, ConceptCharType CharType, typename TContext>
 		struct attribute
 		{
-			// why the fuck i have to call static function with rvalue object i dont get it.
-			// compiler does really know function is static but it fails to parse it like TScanner::GetType 
-			// TScanner{}. and TScanner:: is semantically pretty much the same in compile-time but ...
-			using type = decltype(TScanner{}.GetType<CharType, TContext>());
+			using type = decltype(TScanner::template GetType<CharType, TContext>());
 		};
 
 
