@@ -316,14 +316,14 @@ namespace Scanners
 		{};
 
 		template<ConceptCharType CharType, typename TContext>
-		consteval static auto GetType()
+		constexpr static auto GetReturnType()
 		{
-			static_assert(std::is_same_v<CharType, OwnCharType>, "CScannerStringRaw::GetType() : own char type != char type from ParseFunction");
+			static_assert(std::is_same_v<CharType, OwnCharType>, "CScannerStringRaw::GetReturnType() : own char type != char type from ParseFunction");
 			return std::basic_string<OwnCharType>{};
 		}
 
 		template<ConceptCharType CharType, typename TContext>
-		bool ParseFunction(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TContext &&context, std::type_identity_t<decltype(GetType<CharType, TContext>())> &_val)
+		bool ParseFunction(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TContext &&context, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &_val) const
 		{
 			CharType *ptr_end;
 
@@ -373,12 +373,12 @@ namespace traits
 		template<typename TScanner, ConceptCharType CharType, typename TContext>
 		struct attribute
 		{
-			using type = decltype(TScanner::template GetType<CharType, TContext>());
+			using type = decltype(TScanner::template GetReturnType<CharType, TContext>());
 		};
 
 
 		template<typename TScanner, ConceptCharType CharType, typename TContext>
-		using attribute_t = attribute<TScanner, CharType, TContext>::type;
+		using attribute_t = attribute<std::remove_cvref_t<TScanner>, CharType, std::remove_cvref_t<TContext>>::type;
 	};
 
 };

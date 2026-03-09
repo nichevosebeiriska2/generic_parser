@@ -128,6 +128,31 @@ namespace Parsers
 		}
 	}
 
+
 	
 
+}
+
+#include "alternative.h"
+
+template<ConceptCharType CharType, typename TParser>
+auto ParseLexeme2(std::basic_string<CharType> strInput, TParser& parser)
+{
+	Context ctx{ Skipper{" \n\t"} };
+
+	const CharType* ptr_begin = strInput.data();
+	const CharType* ptr_end = ptr_begin + strInput.length();
+
+
+	auto result = TParser::template GetReturnType<CharType, decltype(ctx)>();
+	bool parsed = parser.ParseNew(ptr_begin, ptr_end, ctx, result);
+
+
+	return std::make_pair(parsed, std::move(result));
+}
+
+template<ConceptCharType CharType, typename TParser>
+auto ParseLexeme2(const CharType* strInput, TParser& parser)
+{
+	return ParseLexeme2(std::basic_string<CharType>{strInput}, parser);
 }

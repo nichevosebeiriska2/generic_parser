@@ -119,8 +119,8 @@ public:
 		int i = 0;
 		if(m_parser.ParseNew(ptr_string, ptr_string_end, context, i))
 		{
-			CParsingResultContext ctx_action(_attribute, i);
-			m_action(ctx_action);
+			//CParsingResultContext ctx_action(_attribute, i);
+			//m_action(ctx_action);
 		}
 		//CParsingResultContext parse_context{_attribute, }
 		return false;

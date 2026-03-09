@@ -1,5 +1,6 @@
 #pragma  once
 
+#include <string>
 // MACRO
 
 // You have to copy 'impl' parser to separate its result from ones upward in recursive call stack!
@@ -57,8 +58,8 @@ class CScanner##_##name##_##Char												\
 	bool scanned = false;															\
 																										\
 	public:																						\
-template<ConceptCharType CharType>									\
-bool Scan(constCharPtr<CharType> ptr_to_string, constCharPtr<CharType> ptr_to_string_end)\
+template<ConceptCharType CharType, typename TContext>									\
+bool ParseFunction(constCharPtr<CharType> ptr_to_string, constCharPtr<CharType> ptr_to_string_end, TContext &&context, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &_val)\
 {																										\
 	if(ptr_to_string == ptr_to_string_end)						\
 	{																									\
@@ -87,10 +88,11 @@ bool Scan(constCharPtr<CharType> ptr_to_string, constCharPtr<CharType> ptr_to_st
 																										\
 }																										\
 																										\
-int GetNumberOfScannedChars()												\
-{																										\
-	return scanned;																		\
-}																										\
+template<ConceptCharType CharType, typename TContext>\
+constexpr static auto GetReturnType()\
+{\
+	return CharType{};\
+}\
 																										\
 };																									\
 using _##name = CScanner##_##name##_##Char;								
@@ -105,32 +107,39 @@ class CScanner##_##name##_##String									\
 																										\
 	public:																						\
 																										\
-template<ConceptCharType CharType>									\
-bool Scan(constCharPtr<CharType> ptr_to_string, constCharPtr<CharType> ptr_to_string_end)\
-{																										\
+template<ConceptCharType CharType, typename TContext>									\
+bool ParseFunction(constCharPtr<CharType> ptr_to_string, constCharPtr<CharType> ptr_to_string_end, TContext &&context, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &_val)\
+{\
 constCharPtr<CharType> ptr_temp = ptr_to_string;		\
 																										\
 	if constexpr(std::is_same_v<CharType, char>)			\
 	{																									\
 		while(ptr_temp < ptr_to_string_end && str_std_function_name_str(*ptr_temp))\
 				ptr_temp++;																	\
-		return scanned_symbols = (ptr_temp - ptr_to_string);								\
+		size_t scanned_symbols = (ptr_temp - ptr_to_string);								\
+		if(scanned_symbols)\
+			_val = std::string{ ptr_to_string, ptr_temp };\
+		return scanned_symbols > 0;\
 	}																									\
 	else if constexpr(std::is_same_v<CharType, wchar_t>)\
 	{																									\
 		while(ptr_temp < ptr_to_string_end && str_std_function_name_wstr(*ptr_temp))\
 				ptr_temp++;																	\
-		return scanned_symbols = (ptr_temp - ptr_to_string);								\
+		size_t scanned_symbols = (ptr_temp - ptr_to_string);								\
+		if(scanned_symbols)\
+			_val = std::wstring{ ptr_to_string, ptr_temp };\
+		return scanned_symbols > 0;\
 	}																									\
 	else																							\
 		static_assert(false, "forbidden char type");		\
 																										\
 																										\
-}																										\
-int GetNumberOfScannedChars()												\
-{																										\
-	return std::exchange(scanned_symbols, 0);					\
-}																										\
+};																										\
+template<ConceptCharType CharType, typename TContext>\
+constexpr static auto GetReturnType()\
+{\
+	return std::basic_string<CharType>{};\
+};\
 };																									\
 using _##name = CScanner##_##name##_##String;								
 

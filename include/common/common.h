@@ -45,6 +45,7 @@ concept ConceptParser = requires(T t)
 	requires ConceptHasScanFunction<T, char> /*&& ConceptHasScanFunction<T, wchar_t>*/;
 };
 
+
 template<typename T> 
 concept ConceptScanner = requires(T t)
 {
@@ -96,3 +97,113 @@ template<typename T>
 constexpr bool is_parser_v = is_parser<T>::value;
 
 // \metafunctions 
+
+
+template<template<typename> class TScanner, ConceptCharType CharType>
+class ParserLiteralWithContext;
+
+template<typename TScanner>
+class ParserWithContext;
+
+template<typename ... TParsers>
+class ParserAltNew;
+
+template<typename ... TParsers>
+class ParserSeqNew;
+
+template<typename TParser, typename TParserDelimiter>
+class ParserListNew;
+
+template<typename TParser>
+class ParserRepeateNew;
+
+template<typename TRuleTag, typename TReturnType>
+class RuleNew;
+
+template<typename TParser, typename TAction>
+class ParserWithActionNew;
+
+// base
+template<typename T>
+struct is_base_parser : public std::false_type {};
+
+template<template<typename> class TScanner, ConceptCharType CharType>
+struct is_base_parser<ParserLiteralWithContext<TScanner, CharType>> : public std::true_type {};
+
+template<typename TScanner>
+struct is_base_parser<ParserWithContext<TScanner>> : public std::true_type {};
+
+template<typename T>
+constexpr bool is_base_parser_v = is_base_parser< std::remove_cvref_t<T>>::value;
+
+//alt
+template<typename T>
+struct is_alternative_parser : public std::false_type {};
+
+template<typename ... TParsers>
+struct is_alternative_parser<ParserAltNew<TParsers...>> : public std::true_type {};
+
+template<typename T>
+constexpr bool is_alternative_parser_v = is_alternative_parser< std::remove_cvref_t<T>>::value;
+
+
+// list
+template<typename T>
+struct is_list_parser : public std::false_type {};
+
+template<typename TParser, typename TParserDelimiter>
+struct is_list_parser<ParserListNew<TParser, TParserDelimiter>> : public std::true_type {};
+
+template<typename T>
+constexpr bool is_list_parser_v = is_alternative_parser< std::remove_cvref_t<T>>::value;
+
+//repeate 
+template<typename T>
+struct is_repeate_parser : public std::false_type {};
+
+template<typename TParser>
+struct is_repeate_parser<ParserRepeateNew<TParser>> : public std::true_type {};
+
+template<typename T>
+constexpr bool is_repeate_parser_v = is_alternative_parser< std::remove_cvref_t<T>>::value;
+
+//seq
+template<typename T>
+struct is_new_sequential : std::false_type {};
+
+template<typename... Parsers>
+struct is_new_sequential<ParserSeqNew<Parsers...>> : std::true_type {};
+
+template<typename T>
+constexpr bool is_new_sequential_v = is_new_sequential< std::remove_cvref_t<T>>::value;
+
+//rule
+template<typename T>
+struct is_rule_new : std::false_type {};
+
+template<typename T, typename U>
+struct is_rule_new<RuleNew<T, U>> : std::true_type {};
+
+template<typename T>
+constexpr bool is_rule_new_v = is_new_sequential<std::remove_cvref_t<T>>::value;
+
+// with_action
+template<typename T>
+struct is_parser_with_action : std::false_type {};
+
+template<typename TParser, typename TAction>
+struct is_parser_with_action<ParserWithActionNew<TParser, TAction>> : std::true_type {};
+
+template<typename T>
+constexpr bool is_parser_with_action_v = is_parser_with_action<std::remove_cvref_t<T>>::value;
+
+
+// concept
+template<typename T>
+concept ConceptNewParser = is_base_parser_v< std::remove_cvref_t<T>>
+											|| is_alternative_parser_v< std::remove_cvref_t<T>>
+											|| is_new_sequential_v< std::remove_cvref_t<T>>
+											|| is_repeate_parser_v< std::remove_cvref_t<T>>
+											|| is_list_parser_v< std::remove_cvref_t<T>>
+											|| is_rule_new_v< std::remove_cvref_t<T>>
+											|| is_parser_with_action_v<std::remove_cvref_t<T>>;

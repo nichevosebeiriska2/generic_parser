@@ -11,7 +11,7 @@ public:																																			\
 	constexpr CScanner_##name##_Char() noexcept = default;									\
 																																						\
 	template<ConceptCharType CharType, typename TContext>											\
-	consteval static auto GetType()																						\
+	constexpr static auto GetReturnType()																						\
 	{																																					\
 		if constexpr(std::remove_cvref_t<TContext>::IsOmitedStatic())						\
 			return tag_attribute_unused{};																				\
@@ -28,7 +28,7 @@ public:																																			\
 	}																																					\
 																																						\
 	template<ConceptCharType CharType, typename TContext>											\
-	bool ParseFunction(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TContext &&context, std::type_identity_t<decltype(GetType<CharType, TContext>())> &_val)\
+	bool ParseFunction(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TContext &&context, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &_val) const\
 	{																																					\
 		CharType *ptr_end;																											\
 																																						\

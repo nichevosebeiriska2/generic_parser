@@ -4,11 +4,41 @@
 
 #include <type_traits>
 
+template<ConceptCharType CharType>
+class Skipper
+{
+	std::basic_string<CharType> m_skip_symbols;
+public:
+	Skipper(std::basic_string_view<CharType> symbols)
+		: m_skip_symbols{ symbols }
+	{}
+
+	Skipper(const CharType* symbols)
+		: m_skip_symbols{ symbols }
+	{};
+
+	void Skip(constCharPtrRef<CharType> ptr_string)
+	{
+		int count = strspn(ptr_string, m_skip_symbols.data());
+
+		if (count)
+			ptr_string += count;
+	}
+};
+
+
+template<ConceptCharType CharType>
+Skipper(std::basic_string_view<CharType> symbols) -> Skipper<CharType>;
+
+template<ConceptCharType CharType>
+Skipper(const CharType* symbols) -> Skipper<CharType>;
+
+
 template<typename SkipperType = tag_skipper_non, bool omited = false, bool case_sensetive = true>
 class Context
 {
-	static_assert(is_skipper_non_type_v<SkipperType> || ConceptParser<SkipperType>, "Context::SkipperType must satisfy requirements of ConceptParser<SkipperType> "
-								"or be equal to tag_skipper_non in case context intended to ignore skipper");
+	//static_assert(is_skipper_non_type_v<SkipperType> || ConceptNewParser<SkipperType>, "Context::SkipperType must satisfy requirements of ConceptParser<SkipperType> "
+								//"or be equal to tag_skipper_non in case context intended to ignore skipper");
 
 public:
 	using _skipper_type = SkipperType;
@@ -18,8 +48,11 @@ public:
 	SkipperType _skipper;
 
 public:
-
-	//Context(){};
+	template<typename TSkipper>
+	Context(TSkipper& skipper)
+		: _skipper{ std::forward<TSkipper>(skipper) }
+	{
+	}
 
 	template<typename TSkipper>
 	Context(TSkipper &&skipper)
@@ -47,7 +80,7 @@ public:
 	{
 		if constexpr(HasSkipper())
 		{
-			::UseSkipper(ptr_string, ptr_string_end, _skipper);
+			_skipper.Skip(ptr_string);
 		}
 	}
 
@@ -98,17 +131,35 @@ Context(Context<TSkipper> &&other) -> Context<TSkipper>;
 template<typename TSkipper>
 Context(Context<TSkipper> &other) -> Context<TSkipper>;
 
+template<typename T>
+struct is_context : std::false_type {};
 
-template<typename TAttribute, typename TValue>
-class CParsingResultContext
+template<typename TSkipper,bool omited, bool case_sensetive>
+struct is_context<Context<TSkipper, omited, case_sensetive>> : std::true_type {};
+
+template <typename T>
+concept ConceptContext = is_context<std::remove_cvref_t<T>>::value;
+
+
+template<ConceptCharType CharType, typename TChildValue>
+class CActionContext
 {
-	TAttribute &_attr;
-	TValue &_val;
+	std::reference_wrapper<TChildValue> _val;
+
+	constCharPtr<CharType> ptr_begin;
+	constCharPtr<CharType> ptr_end;
+
 public:
 
-	CParsingResultContext(TAttribute & attr, TValue &val)
-		: _attr{attr}
-		, _val{val}
-	{
-	}
+	constexpr CActionContext(TChildValue& val) noexcept
+		: _val{val}
+	{}
+
+	TChildValue& GetValue() { return _val.get(); }
+
+	void SetBegin(constCharPtr<CharType> ptr) { ptr_begin = ptr; }
+	void SetEnd(constCharPtr<CharType> ptr) { ptr_end = ptr; }
+	auto Begin() const { return ptr_begin; }
+	auto End() const { return ptr_end; }
 };
+

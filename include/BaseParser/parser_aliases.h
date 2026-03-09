@@ -12,19 +12,19 @@ namespace Parsers
 
 	namespace type_char
 	{
-		using _char = Parser<Scanners::ScannerCharAny<char>, char>;
-		using _char_alpha = Parser<Scanners::_isalpha, char>;
-		using _char_alnum = Parser<Scanners::_isalnum, char>;
-		using _char_digit = Parser<Scanners::_isdigit, char>;
-		using _char_blank = Parser<Scanners::_isblank, char>;
-		using _char_cntrl = Parser<Scanners::_iscntrl, char>;
-		using _char_graph = Parser<Scanners::_isgraph, char>;
-		using _char_print = Parser<Scanners::_isprint, char>;
-		using _char_punct = Parser<Scanners::_ispunct, char>;
-		using _char_space = Parser<Scanners::_isspace, char>;
-		using _char_xdigit = Parser<Scanners::_isxdigit, char>;
-		using _char_lower = Parser<Scanners::_islower, char>;
-		using _char_upper = Parser<Scanners::_isupper, char>;
+		//using _char = Parser<Scanners::ScannerCharAny<char>, char>;
+		//using _char_alpha = Parser<Scanners::_isalpha, char>;
+		//using _char_alnum = Parser<Scanners::_isalnum, char>;
+		//using _char_digit = Parser<Scanners::_isdigit, char>;
+		//using _char_blank = Parser<Scanners::_isblank, char>;
+		//using _char_cntrl = Parser<Scanners::_iscntrl, char>;
+		//using _char_graph = Parser<Scanners::_isgraph, char>;
+		//using _char_print = Parser<Scanners::_isprint, char>;
+		//using _char_punct = Parser<Scanners::_ispunct, char>;
+		//using _char_space = Parser<Scanners::_isspace, char>;
+		//using _char_xdigit = Parser<Scanners::_isxdigit, char>;
+		//using _char_lower = Parser<Scanners::_islower, char>;
+		//using _char_upper = Parser<Scanners::_isupper, char>;
 	};
 
 	using _wchar = Parser<Scanners::ScannerCharAny<char>, wchar_t>;
