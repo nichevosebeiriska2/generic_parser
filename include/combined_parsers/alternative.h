@@ -22,11 +22,14 @@ protected:
 		{
 			using tParserType = traits::parsers::attribute_t<decltype(std::get<index>(m_tuple_parsers)), CharType, TContext>;
 			auto _val = tParserType{};
+			const auto ptr_temp = ptr_string;
 
 			auto parsed = std::get<index>(m_tuple_parsers).ParseNew(ptr_string, ptr_string_end, context, _val);
 
-			if (parsed)
+			if(parsed)
 				attribute.emplace<index>(_val);
+			else
+				ptr_string = ptr_temp;
 
 			return parsed;
 		};
@@ -52,10 +55,10 @@ public:
 	{
 	}
 
-	constexpr ParserAltNew(ParserAltNew<TParsers...>& other)
-		: m_tuple_parsers{ other.m_tuple_parsers }
-	{
-	}
+	//constexpr ParserAltNew(ParserAltNew<TParsers...>& other)
+	//	: m_tuple_parsers{ other.m_tuple_parsers }
+	//{
+	//}
 
 	template<typename ... TOtherParsert, typename TRight>
 	constexpr ParserAltNew(ParserAltNew<TOtherParsert...>&& other, TRight&& right)
@@ -65,7 +68,7 @@ public:
 	}
 
 	template<typename ... TOtherParsert, typename TRight>
-	constexpr ParserAltNew(ParserAltNew<TOtherParsert...>& other, TRight&& right)
+	constexpr ParserAltNew(const ParserAltNew<TOtherParsert...>& other, TRight&& right)
 		: m_tuple_parsers{ tuple_utils::concat_as_tuple(other.m_tuple_parsers, right) }
 	{
 
@@ -79,7 +82,7 @@ public:
 	}
 
 	template<typename TLeft, typename ... TOtherParsert>
-	constexpr ParserAltNew(TLeft& left, ParserAltNew<TOtherParsert...>&& other)
+	constexpr ParserAltNew(TLeft& left, const ParserAltNew<TOtherParsert...>& other)
 		: m_tuple_parsers{ tuple_utils::concat_as_tuple(left, other.m_tuple_parsers) }
 	{
 

@@ -15,7 +15,7 @@ public:
 	constexpr static auto GetReturnType() { return return_type{}; };
 
 	template<ConceptCharType CharType, ConceptContext TContext>
-	bool ParseNew(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TContext&& context, std::type_identity_t<return_type>& attribute);
+	bool ParseNew(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TContext&& context, std::type_identity_t<return_type>& attribute) const;
 };
 
 #define IMPLEMENT_RULE_NEW(decl, impl)\
@@ -23,7 +23,7 @@ template<>\
 template<ConceptCharType CharType, ConceptContext TContext>\
 bool typename decltype(decl)::ParseNew(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end\
 	, TContext&& context\
-	, std::type_identity_t<decltype(decl)::return_type>& attribute)\
+	, std::type_identity_t<decltype(decl)::return_type>& attribute) const\
 {\
 	using tRuleReturnType = traits::parsers::attribute<decltype(impl), CharType, std::remove_cvref_t<TContext>>::type;\
 	static_assert(is_parser_with_action_v<decltype(impl)>, "RuleNew::ParseNew() - declaration should be \"parser_with_action\" type");\

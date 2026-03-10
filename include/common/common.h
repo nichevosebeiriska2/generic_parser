@@ -155,7 +155,7 @@ template<typename TParser, typename TParserDelimiter>
 struct is_list_parser<ParserListNew<TParser, TParserDelimiter>> : public std::true_type {};
 
 template<typename T>
-constexpr bool is_list_parser_v = is_alternative_parser< std::remove_cvref_t<T>>::value;
+constexpr bool is_list_parser_v = is_list_parser< std::remove_cvref_t<T>>::value;
 
 //repeate 
 template<typename T>
@@ -165,7 +165,7 @@ template<typename TParser>
 struct is_repeate_parser<ParserRepeateNew<TParser>> : public std::true_type {};
 
 template<typename T>
-constexpr bool is_repeate_parser_v = is_alternative_parser< std::remove_cvref_t<T>>::value;
+constexpr bool is_repeate_parser_v = is_repeate_parser< std::remove_cvref_t<T>>::value;
 
 //seq
 template<typename T>
@@ -185,7 +185,7 @@ template<typename T, typename U>
 struct is_rule_new<RuleNew<T, U>> : std::true_type {};
 
 template<typename T>
-constexpr bool is_rule_new_v = is_new_sequential<std::remove_cvref_t<T>>::value;
+constexpr bool is_rule_new_v = is_rule_new<std::remove_cvref_t<T>>::value;
 
 // with_action
 template<typename T>
@@ -200,10 +200,12 @@ constexpr bool is_parser_with_action_v = is_parser_with_action<std::remove_cvref
 
 // concept
 template<typename T>
-concept ConceptNewParser = is_base_parser_v< std::remove_cvref_t<T>>
-											|| is_alternative_parser_v< std::remove_cvref_t<T>>
-											|| is_new_sequential_v< std::remove_cvref_t<T>>
-											|| is_repeate_parser_v< std::remove_cvref_t<T>>
-											|| is_list_parser_v< std::remove_cvref_t<T>>
-											|| is_rule_new_v< std::remove_cvref_t<T>>
-											|| is_parser_with_action_v<std::remove_cvref_t<T>>;
+concept ConceptNewParser = (is_base_parser_v< std::remove_cvref_t<T>>
+														|| is_alternative_parser_v< std::remove_cvref_t<T>>
+														|| is_new_sequential_v< std::remove_cvref_t<T>>
+														|| is_repeate_parser_v< std::remove_cvref_t<T>>
+														|| is_list_parser_v< std::remove_cvref_t<T>>
+														|| is_rule_new_v< std::remove_cvref_t<T>>
+														|| is_parser_with_action_v<std::remove_cvref_t<T>>) 
+														&& std::move_constructible<T> 
+														&& std::copy_constructible<T>;

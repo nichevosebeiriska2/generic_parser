@@ -19,10 +19,21 @@ public:
 
 	void Skip(constCharPtrRef<CharType> ptr_string)
 	{
-		int count = strspn(ptr_string, m_skip_symbols.data());
+		if constexpr (std::is_same_v<char, CharType>)
+		{
+			int count = std::strspn(ptr_string, m_skip_symbols.data());
 
-		if (count)
-			ptr_string += count;
+			if(count)
+				ptr_string += count;
+		}
+		else
+		{
+			int count = std::wcsspn(ptr_string, m_skip_symbols.data());
+
+			if(count)
+				ptr_string += count;
+		}
+		
 	}
 };
 

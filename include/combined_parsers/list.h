@@ -12,25 +12,25 @@ class ParserListNew
 
 public:
 
-	ParserListNew(ParserListNew<TParser, TParserDelimiter>& other)
+	ParserListNew(const ParserListNew<TParser, TParserDelimiter>& other)
 		: m_parser{ other.m_parser }
 		, m_parser_delimiter{ other.m_parser_delimiter }
 		, number_of_repeats{ other.number_of_repeats }
 	{}
 
-	ParserListNew(ParserListNew<TParser, TParserDelimiter>&& other )
-		: m_parser{ other.m_parser }
-		, m_parser_delimiter{ other.m_parser_delimiter}
+	ParserListNew(ParserListNew<TParser, TParserDelimiter>&& other ) noexcept
+		: m_parser{ std::move(other.m_parser)}
+		, m_parser_delimiter{ std::move(other.m_parser_delimiter)}
 		, number_of_repeats{ other.number_of_repeats }
 	{}
 
-	ParserListNew(ParserListNew<TParser, TParserDelimiter>& other, size_t N = CONST_NUMBER_OF_CHARS_AT_LEAST_ONE)
+	ParserListNew(const ParserListNew<TParser, TParserDelimiter>& other, size_t N)
 		: m_parser{ other.m_parser }
 		, m_parser_delimiter{ other.m_parser_delimiter }
 		, number_of_repeats{ N }
 	{}
 
-	ParserListNew(ParserListNew<TParser, TParserDelimiter>&& other, size_t N = CONST_NUMBER_OF_CHARS_AT_LEAST_ONE)
+	ParserListNew(ParserListNew<TParser, TParserDelimiter>&& other, size_t N)
 		: m_parser{ other.m_parser }
 		, m_parser_delimiter{ other.m_parser_delimiter }
 		, number_of_repeats{ N }
@@ -61,7 +61,7 @@ public:
 	bool ParseNew(constCharPtrRef<CharType> ptr_string
 		, constCharPtrRef<CharType> ptr_string_end
 		, TContext&& context
-		, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())>& attribute)
+		, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())>& attribute) const
 	{
 		bool delimiter_parser = true;
 		context.UseSkipper(ptr_string, ptr_string_end);// pre-skip
@@ -91,8 +91,14 @@ ParserListNew(TParser parser, TDelimiter delimiter) -> ParserListNew<TParser, TD
 template<typename TParser, typename TDelimiter>
 ParserListNew(TParser parser, TDelimiter delimiter, int N) -> ParserListNew<TParser, TDelimiter>;
 
+//template<typename TParser, typename TDelimiter>
+//ParserListNew(const ParserListNew<TParser, TDelimiter> &other) -> ParserListNew<TParser, TDelimiter>;
+
 template<typename TParser, typename TDelimiter>
-ParserListNew(ParserListNew<TParser, TDelimiter>& other, int N) -> ParserListNew<TParser, TDelimiter>;
+ParserListNew(const ParserListNew<TParser, TDelimiter>& other, int N) -> ParserListNew<TParser, TDelimiter>;
+
+//template<typename TParser, typename TDelimiter>
+//ParserListNew(ParserListNew<TParser, TDelimiter> &&other) -> ParserListNew<TParser, TDelimiter>;
 
 template<typename TParser, typename TDelimiter>
 ParserListNew(ParserListNew<TParser, TDelimiter>&& other, int N) -> ParserListNew<TParser, TDelimiter>;

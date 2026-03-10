@@ -55,7 +55,7 @@ public:
 	bool ParseNew(constCharPtrRef<CharType> ptr_string
 		, constCharPtrRef<CharType> ptr_string_end
 		, TContext&& context
-		, std::type_identity_t<decltype(GetReturnType<CharType, std::remove_cvref_t<TContext>>())>& attribute)
+		, std::type_identity_t<decltype(GetReturnType<CharType, std::remove_cvref_t<TContext>>())>& attribute) const
 	{
 		using tParserResultType = typename traits::parsers::attribute_t<TParser, CharType, decltype(context)>;
 		tParserResultType parser_result{};

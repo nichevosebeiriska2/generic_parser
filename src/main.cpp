@@ -52,64 +52,49 @@ void fContext(TContext&& ctx)
 
 }
 
-#include <gtest/gtest.h>
-
-void f_test_new_context()
-{
-	auto res = decltype(action_for_rule)::GetReturnType<char, decltype(ctx)>();
-	Context ctx{ Parsers::Skippers::wchar::space};
-	fContext(ctx);
-	bool bcontext = is_context<decltype(ctx)>::value;
-
-	Scanners::CScannerFloat s_f;
-
-	std::string strInput = "12 123 11";
-
-	const char *str = "11 123 11";
-	const char *str_end = str + std::strlen(str);
-
-	const wchar_t *wstr = L"11 123 11";
-	const wchar_t *wstr_end = wstr + std::wcslen(wstr);
-	wchar_t *end;
-	char *endc;
-
-
-	ParserLiteralWithContext ps(std::basic_string_view{"123"});
-
-	ParserListNew listNew(parser, ps);
-	//ParserRepeateNew rep(parser);
-	ParserAltNew alt(parser, ps);
-	ParserWithActionNew action(parser, [](auto& ctx) { return std::string{ ctx.Begin(), ctx.End() }; });
-
-	auto seq3 = parser >> "2";
-
-	bool bAction = is_parser_with_action_v<decltype(action)>;
-
-	//ParseLexeme2(strInput, rule);
-	//ParseLexeme2(strInput, action);
-	//ParseLexeme2(strInput, alt);
-	//ParseLexeme2(strInput, listNew);
-	//ParseLexeme2(strInput, rep);
-	auto seq2 = action >> ps >> parser ;
-	auto lambda = [](auto& ctx) {return 1; };
-	auto seq_with_action = seq2 [ lambda ];
-	ParseLexeme2(strInput, seq2);
-
-	parser >> ps >> parser;
-	
-	//auto r_l = ps.GetReturnType<wchar_t, decltype(ctx)>();
-	//ps.ParseNew(wstr, wstr_end, ctx, r_l);
-	//auto res = seq2.GetReturnType<wchar_t, decltype(ctx)>();
-	//seq2.ParseNew(wstr, wstr_end, ctx, res);
-
-}
-
 //#include "g"
 #include "BaseParserTest.h"
 #include "RepeateParserTest.h"
 #include "ListParserTest.h"
 #include "AlternativeParserTest.h"
 
+
+struct SJsonObject;
+struct SJsonArray;
+
+struct SJsonValue
+{
+	std::variant<std::monostate, bool, int, float, std::string, SJsonArray *, SJsonObject *> m_value;
+};
+
+struct SJsonObject
+{
+	std::map<std::string, SJsonValue> m_values;
+};
+struct SJsonArray
+{
+	std::vector<SJsonValue> m_values;
+};
+
+RuleNew<class tag_value, SJsonValue> value;
+RuleNew<class tag_object, SJsonValue> object;
+RuleNew<class tag_array, SJsonValue> array;
+
+auto action_on_null = [](auto& ctx){return std::monostate{};};
+auto action_on_bool = [](auto& ctx){return true;};
+auto action_on_str = [](auto& ctx){return std::basic_string{ctx.Begin(), ctx.End()}; };
+
+auto parser_null = (ParserLiteralWithContext{"null"})[action_on_null];
+auto parser_bool = (ParserLiteralWithContext{"true"} |  ParserLiteralWithContext{"false"})[action_on_bool];
+auto parser_int = int_;
+auto parser_float = float_;
+auto parser_string = str_alpha[action_on_str];
+
+auto parser_object = "{" >> *(parser_string >> ":" >> value) >> "}";
+auto parser_array = "[" >> value % "," >> "]";
+
+IMPLEMENT_RULE_NEW(object, parser_object);
+IMPLEMENT_RULE_NEW(array, parser_array);
 
 int main(int argc, char** argv)
 {

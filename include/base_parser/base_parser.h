@@ -29,7 +29,7 @@ public:
 		return traits::scanners::attribute_t<TScanner, CharType, std::remove_cvref_t<TContext>>{};
 	}
 
-	auto operator[](auto&& callable)
+	auto operator[](auto callable) const
 	{
 		return ParserWithActionNew(*this, callable);
 	}
@@ -52,6 +52,11 @@ public:
 		: m_scanner{ literal }
 	{}
 
+	constexpr ParserLiteralWithContext(constCharPtr<CharType>* literal) noexcept
+		: m_scanner{literal}
+	{
+	}
+
 	template<ConceptCharType CharType, ConceptContext TContext>
 	bool ParseNew(constCharPtrRef<CharType> ptr_string
 		, constCharPtrRef<CharType> ptr_string_end
@@ -66,6 +71,11 @@ public:
 	consteval static auto GetReturnType()
 	{
 		return traits::scanners::attribute_t<TScanner<CharType>, CharType, std::remove_cvref_t<TContext>>{};
+	}
+
+	auto operator[](auto callable) const
+	{
+		return ParserWithActionNew(*this, callable);
 	}
 };
 

@@ -45,6 +45,15 @@ namespace tuple_utils
 			return std::make_tuple(std::forward<T>(t));
 	}
 
+	template <typename T>
+	constexpr auto as_tuple(const T &t)
+	{
+		if constexpr(implementation::is_std_tuple_v<std::decay_t<T>>)
+			return t;
+		else
+			return std::make_tuple(t);
+	}
+
 	template<typename ... Args>
 	constexpr auto concat_as_tuple(Args ... args)
 	{

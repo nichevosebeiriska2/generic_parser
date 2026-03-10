@@ -59,7 +59,7 @@ class CScanner##_##name##_##Char												\
 																										\
 	public:																						\
 template<ConceptCharType CharType, typename TContext>									\
-bool ParseFunction(constCharPtr<CharType> ptr_to_string, constCharPtr<CharType> ptr_to_string_end, TContext &&context, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &_val)\
+bool ParseFunction(constCharPtrRef<CharType> ptr_to_string, constCharPtrRef<CharType> ptr_to_string_end, TContext &&context, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &_val)\
 {																										\
 	if(ptr_to_string == ptr_to_string_end)						\
 	{																									\
@@ -68,17 +68,27 @@ bool ParseFunction(constCharPtr<CharType> ptr_to_string, constCharPtr<CharType> 
 																										\
 	if constexpr(std::is_same_v<CharType, char>)			\
 	{																									\
-		if(str_std_function_name_str(*ptr_to_string))		\
+		if(str_std_function_name_str((unsigned char)(*ptr_to_string)))		\
 		{																								\
-			return scanned = true;												\
+			scanned = true;												\
+			if(scanned){\
+				_val = *ptr_to_string;\
+				ptr_to_string ++;\
+			}\
+			return scanned;\
 		}																								\
 		return false;																		\
 	}																									\
 	else if constexpr(std::is_same_v<CharType, wchar_t>)\
 	{																									\
-		if(str_std_function_name_str(*ptr_to_string))		\
+		if(str_std_function_name_wstr(*ptr_to_string))		\
 		{																								\
-			return scanned = true;												\
+			scanned = true;												\
+			if(scanned){\
+				_val = *ptr_to_string;\
+				ptr_to_string ++;\
+			}\
+			return scanned;\
 		}																								\
 		return false;																		\
 	}																									\
@@ -108,17 +118,19 @@ class CScanner##_##name##_##String									\
 	public:																						\
 																										\
 template<ConceptCharType CharType, typename TContext>									\
-bool ParseFunction(constCharPtr<CharType> ptr_to_string, constCharPtr<CharType> ptr_to_string_end, TContext &&context, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &_val)\
+bool ParseFunction(constCharPtrRef<CharType> ptr_to_string, constCharPtrRef<CharType> ptr_to_string_end, TContext &&context, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &_val)\
 {\
 constCharPtr<CharType> ptr_temp = ptr_to_string;		\
 																										\
 	if constexpr(std::is_same_v<CharType, char>)			\
 	{																									\
-		while(ptr_temp < ptr_to_string_end && str_std_function_name_str(*ptr_temp))\
+		while(ptr_temp < ptr_to_string_end && str_std_function_name_str((unsigned char)(*ptr_temp)))\
 				ptr_temp++;																	\
 		size_t scanned_symbols = (ptr_temp - ptr_to_string);								\
-		if(scanned_symbols)\
+		if(scanned_symbols){\
 			_val = std::string{ ptr_to_string, ptr_temp };\
+			ptr_to_string += scanned_symbols;\
+		}\
 		return scanned_symbols > 0;\
 	}																									\
 	else if constexpr(std::is_same_v<CharType, wchar_t>)\
@@ -126,8 +138,10 @@ constCharPtr<CharType> ptr_temp = ptr_to_string;		\
 		while(ptr_temp < ptr_to_string_end && str_std_function_name_wstr(*ptr_temp))\
 				ptr_temp++;																	\
 		size_t scanned_symbols = (ptr_temp - ptr_to_string);								\
-		if(scanned_symbols)\
+		if(scanned_symbols){\
 			_val = std::wstring{ ptr_to_string, ptr_temp };\
+			ptr_to_string += scanned_symbols;\
+		}\
 		return scanned_symbols > 0;\
 	}																									\
 	else																							\

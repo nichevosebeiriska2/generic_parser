@@ -10,7 +10,7 @@ class ParserRepeateNew
 
 public:
 
-	ParserRepeateNew(ParserRepeateNew<TParser>& other)
+	ParserRepeateNew(const ParserRepeateNew<TParser>& other)
 		: m_parser{ other.m_parser }
 		, number_of_repeats{ other.number_of_repeats }
 	{}
@@ -30,12 +30,12 @@ public:
 		, number_of_repeats{ N }
 	{}
 
-	ParserRepeateNew(TParser&& parser, size_t N = CONST_NUMBER_OF_CHARS_AT_LEAST_ONE)
+	ParserRepeateNew(TParser&& parser, size_t N)
 		: m_parser{ std::forward<TParser>(parser)}
 		, number_of_repeats{ N }
 	{}
 
-	ParserRepeateNew(TParser& parser, size_t N = CONST_NUMBER_OF_CHARS_AT_LEAST_ONE)
+	ParserRepeateNew(const TParser& parser, size_t N)
 		: m_parser{ parser }
 		, number_of_repeats{ N }
 	{}
@@ -51,7 +51,7 @@ public:
 	bool ParseNew(constCharPtrRef<CharType> ptr_string
 		, constCharPtrRef<CharType> ptr_string_end
 		, TContext&& context
-		, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())>& attribute)
+		, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())>& attribute) const
 	{
 		context.UseSkipper(ptr_string, ptr_string_end);// pre-skip
 		

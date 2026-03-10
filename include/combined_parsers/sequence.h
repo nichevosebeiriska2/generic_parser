@@ -16,7 +16,7 @@ public:
 		, constCharPtrRef<CharType> ptr_string_end
 		, TContext&& context
 		, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())>& attribute
-		, std::index_sequence<Ts...> seq)
+		, std::index_sequence<Ts...> seq) const
 	{
 		return (std::get<Ts>(m_tuple_parsers).ParseNew(ptr_string, ptr_string_end, context, std::get<Ts>(attribute)) && ...);
 	}
@@ -30,7 +30,7 @@ public:
 public:
 
 	ParserSeqNew(TParsers&& ... parsers)
-		: m_tuple_parsers{ std::forward<TParsers>(parsers) ...}
+		: m_tuple_parsers{ parsers ...}
 	{
 	}
 
@@ -50,19 +50,19 @@ public:
 	}
 
 	template<typename... T, typename TRight>
-	ParserSeqNew(ParserSeqNew<T...> seq, TRight&& right)
+	ParserSeqNew(const ParserSeqNew<T...>& seq, TRight&& right)
 		: m_tuple_parsers{ std::tuple_cat(tuple_utils::as_tuple(seq.m_tuple_parsers), tuple_utils::as_tuple(right)) }
 	{
 	}
 
 	template<typename TLeft, typename... T>
-	ParserSeqNew(TLeft&& left, ParserSeqNew<T...> seq)
+	ParserSeqNew(TLeft&& left, const ParserSeqNew<T...>& seq)
 		: m_tuple_parsers{ std::tuple_cat(tuple_utils::as_tuple(left), tuple_utils::as_tuple(seq.m_tuple_parsers)) }
 	{
 	}
 
 	template<typename... TLeft, typename... TRight>
-	ParserSeqNew(ParserSeqNew<TLeft...> seq_left, ParserSeqNew<TRight...> seq_right)
+	ParserSeqNew(const ParserSeqNew<TLeft...>& seq_left, const ParserSeqNew<TRight...>& seq_right)
 		: m_tuple_parsers{ std::tuple_cat(tuple_utils::as_tuple(seq_left.m_tuple_parsers), tuple_utils::as_tuple(seq_right.m_tuple_parsers)) }
 	{
 	}
@@ -77,7 +77,7 @@ public:
 	bool ParseNew(constCharPtrRef<CharType> ptr_string
 		, constCharPtrRef<CharType> ptr_string_end
 		, TContext&& context
-		, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())>& attribute)
+		, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())>& attribute) const
 	{
 		return ParseImpl(ptr_string, ptr_string_end, context, attribute, std::make_index_sequence<sizeof...(TParsers)>{});
 	}
@@ -90,7 +90,7 @@ public:
 
 
 template<typename TLeft, typename TRight>
-ParserSeqNew(TLeft left, TRight right) -> ParserSeqNew<TLeft, TRight>;
+ParserSeqNew(const TLeft& left, const TRight& right) -> ParserSeqNew<TLeft, TRight>;
 
 template<typename... SeqTypes, typename TRight>
 ParserSeqNew(ParserSeqNew<SeqTypes...> seq, TRight right) -> ParserSeqNew<SeqTypes..., TRight>;
@@ -103,6 +103,12 @@ ParserSeqNew(ParserSeqNew<SeqTypesLeft...> seq_left, ParserSeqNew<SeqTypesRight.
 
 
 template<ConceptNewParser TLeft, ConceptNewParser TRight>
+auto operator>>(const TLeft &left, const TRight &right)
+{
+	return ParserSeqNew(left, right);
+}
+
+template<ConceptNewParser TLeft, ConceptNewParser TRight>
 auto operator>>(TLeft&& left, TRight&& right)
 {
 	return ParserSeqNew(std::forward<TLeft>(left), std::forward<TRight>(right));
@@ -111,13 +117,13 @@ auto operator>>(TLeft&& left, TRight&& right)
 template<ConceptCharType CharType, ConceptNewParser TRight>
 auto operator>>(CharType symbol, TRight&& right)
 {
-	return ParserLiteralWithContext<CharType>(symbol) >> std::forward<TRight>(right);
+	return ParserLiteralWithContext{symbol} >> std::forward<TRight>(right);
 }
 
 template<ConceptNewParser TLeft, ConceptCharType CharType>
 auto operator>>(TLeft&& left, CharType symbol)
 {
-	return  std::forward<TLeft>(left) >> ParserLiteralWithContext<CharType>(symbol);
+	return  std::forward<TLeft>(left) >> ParserLiteralWithContext(symbol);
 }
 
 template<ConceptNewParser TLeft, ConceptCharType CharType>
@@ -126,14 +132,20 @@ auto operator>>(TLeft&& left, const CharType* literal)
 	return std::forward<TLeft>(left) >> ParserLiteralWithContext(literal);
 }
 
+template<ConceptNewParser TLeft, ConceptCharType CharType>
+auto operator>>(const TLeft &left, const CharType *literal)
+{
+	return left >> ParserLiteralWithContext(literal);
+}
+
 template<ConceptCharType CharType, ConceptNewParser TRight>
 auto operator>>(const CharType* literal, TRight&& right)
 {
-	return ParserLiteralWithContext<CharType>(literal) >> std::forward<TRight>(right);
+	return ParserLiteralWithContext(literal) >> std::forward<TRight>(right);
 }
 
 template<ConceptCharType CharType, ConceptNewParser TRight>
 auto operator>>(const CharType* literal, TRight& right)
 {
-	return ParserLiteralWithContext<CharType>(literal) >> std::forward<TRight>(right);
+	return ParserLiteralWithContext(literal) >> std::forward<TRight>(right);
 }
