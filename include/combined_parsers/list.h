@@ -66,9 +66,10 @@ public:
 		, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())>& attribute) const
 	{
 		bool delimiter_parser = true;
+		UINT count = 0;
 		context.UseSkipper(ptr_string, ptr_string_end);// pre-skip
 
-		while (m_parser.ParseNew(ptr_string, ptr_string_end, context, attribute.emplace_back()) && delimiter_parser)// what about non default/copy constructible? looks like we have a problems is case TParser has parsing action
+		while (m_parser.ParseNew(ptr_string, ptr_string_end, context, attribute.emplace_back()) && delimiter_parser && count++ < number_of_repeats)// what about non default/copy constructible? looks like we have a problems is case TParser has parsing action
 		{
 			context.UseSkipper(ptr_string, ptr_string_end);
 
@@ -77,8 +78,13 @@ public:
 		}
 
 		attribute.pop_back();
+		
+		if (number_of_repeats == CONST_NUMBER_OF_CHARS_AT_LEAST_ONE)
+			return !attribute.empty();
+		else if (number_of_repeats == CONST_NUMBER_OF_CHARS_ZERO_OR_MORE)
+			return true;
 
-		return !attribute.empty();
+		return attribute.size() == number_of_repeats;
 	}
 
 	auto operator[](auto&& callable)
@@ -93,14 +99,8 @@ ParserListNew(TParser parser, TDelimiter delimiter) -> ParserListNew<TParser, TD
 template<typename TParser, typename TDelimiter>
 ParserListNew(TParser parser, TDelimiter delimiter, int N) -> ParserListNew<TParser, TDelimiter>;
 
-//template<typename TParser, typename TDelimiter>
-//ParserListNew(const ParserListNew<TParser, TDelimiter> &other) -> ParserListNew<TParser, TDelimiter>;
-
 template<typename TParser, typename TDelimiter>
 ParserListNew(const ParserListNew<TParser, TDelimiter>& other, int N) -> ParserListNew<TParser, TDelimiter>;
-
-//template<typename TParser, typename TDelimiter>
-//ParserListNew(ParserListNew<TParser, TDelimiter> &&other) -> ParserListNew<TParser, TDelimiter>;
 
 template<typename TParser, typename TDelimiter>
 ParserListNew(ParserListNew<TParser, TDelimiter>&& other, int N) -> ParserListNew<TParser, TDelimiter>;
@@ -140,4 +140,10 @@ template<ConceptNewParser TParser, ConceptNewParser TParserDelimiter>
 auto operator*(ParserListNew<TParser, TParserDelimiter>&& parser)
 {
 	return ParserListNew(parser, CONST_NUMBER_OF_CHARS_ZERO_OR_MORE);
+}
+
+template<ConceptNewParser TParser, ConceptNewParser TParserDelimiter>
+auto operator*(const int N, ParserListNew<TParser, TParserDelimiter>&& parser)
+{
+	return ParserListNew(parser, N);
 }

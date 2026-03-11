@@ -53,16 +53,20 @@ public:
 		, TContext&& context
 		, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())>& attribute) const
 	{
+		UINT count = 0;
 		context.UseSkipper(ptr_string, ptr_string_end);// pre-skip
 		
-		while (m_parser.ParseNew(ptr_string, ptr_string_end, context, attribute.emplace_back()))// what about non default/copy constructible? looks like we have a problems is case TParser has parsing action
+		while (m_parser.ParseNew(ptr_string, ptr_string_end, context, attribute.emplace_back()) && count++ < number_of_repeats)// what about non default/copy constructible? looks like we have a problems is case TParser has parsing action
 		{
 		}
 
-		if(!attribute.empty())
-			attribute.pop_back();
 
-		return !attribute.empty();
+		if (number_of_repeats == CONST_NUMBER_OF_CHARS_AT_LEAST_ONE)
+			return !attribute.empty();
+		else if (number_of_repeats == CONST_NUMBER_OF_CHARS_ZERO_OR_MORE)
+			return true;
+
+		return attribute.size() == number_of_repeats;
 	}
 
 	auto operator[](auto&& callable)
@@ -77,11 +81,17 @@ ParserRepeateNew(ParserRepeateNew<TParser>&& other) -> ParserRepeateNew <TParser
 template<ConceptNewParser TParser>
 auto operator+(TParser&& parser)
 {
-	return ParserRepeateNew(parser);
+	return ParserRepeateNew(parser, CONST_NUMBER_OF_CHARS_AT_LEAST_ONE);
 }
 
 template<ConceptNewParser TParser>
 auto operator*(TParser&& parser)
 {
-	return ParserRepeateNew(parser, 1);
+	return ParserRepeateNew(parser, CONST_NUMBER_OF_CHARS_ZERO_OR_MORE);
+}
+
+template<ConceptNewParser TParser>
+auto operator *(UINT N, TParser&& parser)
+{
+	return ParserRepeateNew(parser, N);
 }
