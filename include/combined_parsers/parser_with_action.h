@@ -4,19 +4,6 @@
 
 #include "common.h"
 
-namespace traits::parsers
-{
-	template<typename TParser, ConceptCharType CharType, typename TContext>
-	struct attribute
-	{
-		using type = decltype(TParser::template GetReturnType<CharType, TContext>());
-	};
-
-	template<typename TParser, ConceptCharType CharType, typename TContext>
-	using attribute_t = attribute<std::remove_cvref_t<TParser>, CharType, std::remove_cvref_t<TContext>>::type;
-
-};
-
 
 template<typename TParser, typename TAction>
 class ParserWithActionNew
@@ -26,7 +13,7 @@ protected:
 	TAction m_action;
 
 	template<ConceptCharType CharType, ConceptContext TContext>
-	using TChildParserReturnType = traits::parsers::attribute_t<TParser, CharType, std::remove_cvref_t<TContext>>;
+	using TChildParserReturnType = traits::attribute_t<TParser, CharType, TContext>;
 
 public:
 	template<ConceptCharType CharType, ConceptContext TContext>
@@ -35,7 +22,7 @@ public:
 	template<ConceptCharType CharType, ConceptContext TContext>
 	constexpr static auto GetReturnType()
 	{
-		using tReturnType = std::invoke_result_t<TAction, CActionContext<CharType, traits::parsers::attribute_t<TParser, CharType, TContext>>&>;
+		using tReturnType = std::invoke_result_t<TAction, CActionContext<CharType, traits::attribute_t<TParser, CharType, TContext>>&>;
 
 		static_assert(!std::is_same_v<tReturnType, void>, "ParserWithActionNew::GetReturnType()  - \"parser_with_action\" have to return value throught action");
 		return tReturnType{};
@@ -57,7 +44,7 @@ public:
 		, TContext&& context
 		, std::type_identity_t<decltype(GetReturnType<CharType, std::remove_cvref_t<TContext>>())>& attribute) const
 	{
-		using tParserResultType = typename traits::parsers::attribute_t<TParser, CharType, decltype(context)>;
+		using tParserResultType = typename traits::attribute_t<TParser, CharType, decltype(context)>;
 		tParserResultType parser_result{};
 		CActionContext<CharType, decltype(parser_result)> actx{ parser_result };
 

@@ -7,7 +7,8 @@
 template<ConceptCharType CharType>
 class Skipper
 {
-	std::basic_string<CharType> m_skip_symbols;
+	std::basic_string_view<CharType> m_skip_symbols;
+
 public:
 	Skipper(std::basic_string_view<CharType> symbols)
 		: m_skip_symbols{ symbols }
@@ -20,19 +21,9 @@ public:
 	void Skip(constCharPtrRef<CharType> ptr_string)
 	{
 		if constexpr (std::is_same_v<char, CharType>)
-		{
-			int count = std::strspn(ptr_string, m_skip_symbols.data());
-
-			if(count)
-				ptr_string += count;
-		}
+				ptr_string += std::strspn(ptr_string, m_skip_symbols.data());
 		else
-		{
-			int count = std::wcsspn(ptr_string, m_skip_symbols.data());
-
-			if(count)
-				ptr_string += count;
-		}
+			ptr_string += std::wcsspn(ptr_string, m_skip_symbols.data());
 		
 	}
 };
@@ -48,22 +39,16 @@ Skipper(const CharType* symbols) -> Skipper<CharType>;
 template<typename SkipperType = tag_skipper_non, bool omited = false, bool case_sensetive = true>
 class Context
 {
-	//static_assert(is_skipper_non_type_v<SkipperType> || ConceptNewParser<SkipperType>, "Context::SkipperType must satisfy requirements of ConceptParser<SkipperType> "
-								//"or be equal to tag_skipper_non in case context intended to ignore skipper");
-
 public:
 	using _skipper_type = SkipperType;
 	constexpr static bool _omited{omited};
 	constexpr static bool _case_sensetive{case_sensetive};
-
+	constexpr static bool _has_skipper = !is_skipper_non_type_v<SkipperType>;
 	SkipperType _skipper;
 
 public:
-	template<typename TSkipper>
-	Context(TSkipper& skipper)
-		: _skipper{ std::forward<TSkipper>(skipper) }
-	{
-	}
+
+	Context() = default;
 
 	template<typename TSkipper>
 	Context(TSkipper &&skipper)
@@ -76,23 +61,21 @@ public:
 	{
 	}
 
-	Context(Context<SkipperType> &other)
+	Context(const Context<SkipperType> &other)
 		: _skipper{other._skipper}
 	{
 	}
 
 	constexpr static bool HasSkipper()
 	{
-		return !is_skipper_non_type_v<SkipperType>;
+		return _has_skipper;
 	}
 
 	template<ConceptCharType CharType>
 	constexpr void UseSkipper(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end)
 	{
 		if constexpr(HasSkipper())
-		{
 			_skipper.Skip(ptr_string);
-		}
 	}
 
 	constexpr static bool IsOmitedStatic()

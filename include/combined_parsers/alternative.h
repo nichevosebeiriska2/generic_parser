@@ -20,7 +20,7 @@ protected:
 	{
 		auto lambda_parse_func = [&]<size_t index>()
 		{
-			using tParserType = traits::parsers::attribute_t<decltype(std::get<index>(m_tuple_parsers)), CharType, TContext>;
+			using tParserType = traits::attribute_t<decltype(std::get<index>(m_tuple_parsers)), CharType, TContext>;
 			auto _val = tParserType{};
 			const auto ptr_temp = ptr_string;
 
@@ -54,11 +54,6 @@ public:
 		: m_tuple_parsers{ other.m_tuple_parsers }
 	{
 	}
-
-	//constexpr ParserAltNew(ParserAltNew<TParsers...>& other)
-	//	: m_tuple_parsers{ other.m_tuple_parsers }
-	//{
-	//}
 
 	template<typename ... TOtherParsert, typename TRight>
 	constexpr ParserAltNew(ParserAltNew<TOtherParsert...>&& other, TRight&& right)
@@ -155,6 +150,30 @@ template<ConceptNewParser TLeft, ConceptNewParser TRight>
 constexpr auto operator|(TLeft&& left, TRight&& right)
 {
 	return ParserAltNew(left, right);
+}
+
+template<ConceptCharType CharType, ConceptNewParser TRight>
+constexpr auto operator|(const CharType* literal, TRight &&right)
+{
+	return ParserAltNew(ParserLiteralWithContext{literal}, right);
+}
+
+template<ConceptNewParser TLeft, ConceptCharType CharType>
+constexpr auto operator|(TLeft &&left, const CharType *literal)
+{
+	return ParserAltNew(left, ParserLiteralWithContext{literal});
+}
+
+template<ConceptCharType CharType, ConceptNewParser TRight>
+constexpr auto operator|(CharType symbol, TRight &&right)
+{
+	return ParserAltNew(ParserLiteralWithContext{symbol}, right);
+}
+
+template<ConceptNewParser TLeft, ConceptCharType CharType>
+constexpr auto operator|(TLeft &&left, CharType symbol)
+{
+	return ParserAltNew(left, ParserLiteralWithContext{symbol});
 }
 
 

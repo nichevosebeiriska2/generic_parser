@@ -115,7 +115,7 @@ protected:
 
 			//using namespace traits::scanners;
 
-			using t= traits::scanners::attribute<TScanner, char, std::remove_cvref_t<TContext>>::type;
+			using t= traits::attribute<TScanner, char, std::remove_cvref_t<TContext>>::type;
 
 			auto scanner = TScanner{};
 			const bool scanned = scanner.Scan(ptr_string, ptr_string_end);

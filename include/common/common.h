@@ -123,6 +123,9 @@ class RuleNew;
 template<typename TParser, typename TAction>
 class ParserWithActionNew;
 
+template<typename TParser>
+class ParserPredicateNon;
+
 // base
 template<typename T>
 struct is_base_parser : public std::false_type {};
@@ -197,6 +200,14 @@ struct is_parser_with_action<ParserWithActionNew<TParser, TAction>> : std::true_
 template<typename T>
 constexpr bool is_parser_with_action_v = is_parser_with_action<std::remove_cvref_t<T>>::value;
 
+template<typename T>
+struct is_parser_predicate_not : std::false_type{};
+
+template<typename T>
+struct is_parser_predicate_not<ParserPredicateNon<T>> : std::true_type{};
+
+template<typename T>
+constexpr bool is_parser_predicate_not_v = is_parser_predicate_not<std::remove_cvref_t<T>>::value;
 
 // concept
 template<typename T>
@@ -206,6 +217,7 @@ concept ConceptNewParser = (is_base_parser_v< std::remove_cvref_t<T>>
 														|| is_repeate_parser_v< std::remove_cvref_t<T>>
 														|| is_list_parser_v< std::remove_cvref_t<T>>
 														|| is_rule_new_v< std::remove_cvref_t<T>>
-														|| is_parser_with_action_v<std::remove_cvref_t<T>>) 
+														|| is_parser_with_action_v<std::remove_cvref_t<T>>
+														||is_parser_predicate_not_v<std::remove_cvref_t<T>>)
 														&& std::move_constructible<T> 
 														&& std::copy_constructible<T>;

@@ -57,7 +57,7 @@ void fContext(TContext&& ctx)
 #include "RepeateParserTest.h"
 #include "ListParserTest.h"
 #include "AlternativeParserTest.h"
-
+#include "PredicateNotTest.h"
 
 struct SJsonObject;
 struct SJsonArray;
@@ -95,6 +95,7 @@ auto parser_array = "[" >> value % "," >> "]";
 
 IMPLEMENT_RULE_NEW(object, parser_object);
 IMPLEMENT_RULE_NEW(array, parser_array);
+
 
 int main(int argc, char** argv)
 {

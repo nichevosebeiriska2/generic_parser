@@ -22,7 +22,7 @@ public:
 	}
 
 	template<ConceptCharType CharType, ConceptContext TContext, size_t...Ts>
-	consteval static auto GetReturnTypeImpl(std::index_sequence<Ts...> seq)
+	constexpr static auto GetReturnTypeImpl(std::index_sequence<Ts...> seq)
 	{
 		return std::make_tuple(std::tuple_element_t<Ts, decltype(m_tuple_parsers)>::template GetReturnType<CharType, TContext>() ...);
 	}

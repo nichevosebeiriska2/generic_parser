@@ -466,3 +466,131 @@ TEST(TestBaseParser, TestParseCharDigit)
 	EXPECT_EQ(result_getter(ParseLexeme2(L"a", char_digit)), L'\0');
 }
 
+TEST(TestBaseParser, TestCharAny)
+{
+	EXPECT_EQ(result_getter(ParseLexeme2("0", char_any)), '0');
+	EXPECT_EQ(result_getter(ParseLexeme2("1", char_any)), '1');
+	EXPECT_EQ(result_getter(ParseLexeme2("2", char_any)), '2');
+	EXPECT_EQ(result_getter(ParseLexeme2("3", char_any)), '3');
+	EXPECT_EQ(result_getter(ParseLexeme2("4", char_any)), '4');
+	EXPECT_EQ(result_getter(ParseLexeme2("5", char_any)), '5');
+	EXPECT_EQ(result_getter(ParseLexeme2("6", char_any)), '6');
+	EXPECT_EQ(result_getter(ParseLexeme2("7", char_any)), '7');
+	EXPECT_EQ(result_getter(ParseLexeme2("8", char_any)), '8');
+	EXPECT_EQ(result_getter(ParseLexeme2("9", char_any)), '9');
+
+	EXPECT_EQ(result_getter(ParseLexeme2("a", char_any)), 'a');
+	EXPECT_EQ(result_getter(ParseLexeme2("b", char_any)), 'b');
+	EXPECT_EQ(result_getter(ParseLexeme2("c", char_any)), 'c');
+	EXPECT_EQ(result_getter(ParseLexeme2("d", char_any)), 'd');
+	EXPECT_EQ(result_getter(ParseLexeme2("z", char_any)), 'z');
+
+	EXPECT_EQ(result_getter(ParseLexeme2("A", char_any)), 'A');
+	EXPECT_EQ(result_getter(ParseLexeme2("B", char_any)), 'B');
+	EXPECT_EQ(result_getter(ParseLexeme2("C", char_any)), 'C');
+	EXPECT_EQ(result_getter(ParseLexeme2("D", char_any)), 'D');
+	EXPECT_EQ(result_getter(ParseLexeme2("Z", char_any)), 'Z');
+
+	EXPECT_EQ(result_getter(ParseLexeme2("!", char_any)), '!');
+	EXPECT_EQ(result_getter(ParseLexeme2("\"", char_any)), '\"');
+	EXPECT_EQ(result_getter(ParseLexeme2("#", char_any)), '#');
+	EXPECT_EQ(result_getter(ParseLexeme2("$", char_any)), '$');
+	EXPECT_EQ(result_getter(ParseLexeme2("%", char_any)), '%');
+	EXPECT_EQ(result_getter(ParseLexeme2("&", char_any)), '&');
+	EXPECT_EQ(result_getter(ParseLexeme2("'", char_any)), '\'');
+	EXPECT_EQ(result_getter(ParseLexeme2("(", char_any)), '(');
+	EXPECT_EQ(result_getter(ParseLexeme2(")", char_any)), ')');
+	EXPECT_EQ(result_getter(ParseLexeme2("*", char_any)), '*');
+	EXPECT_EQ(result_getter(ParseLexeme2("+", char_any)), '+');
+	EXPECT_EQ(result_getter(ParseLexeme2(",", char_any)), ',');
+	EXPECT_EQ(result_getter(ParseLexeme2("-", char_any)), '-');
+	EXPECT_EQ(result_getter(ParseLexeme2(".", char_any)), '.');
+	EXPECT_EQ(result_getter(ParseLexeme2("/", char_any)), '/');
+	EXPECT_EQ(result_getter(ParseLexeme2(":", char_any)), ':');
+	EXPECT_EQ(result_getter(ParseLexeme2(";", char_any)), ';');
+	EXPECT_EQ(result_getter(ParseLexeme2("<", char_any)), '<');
+	EXPECT_EQ(result_getter(ParseLexeme2("=", char_any)), '=');
+	EXPECT_EQ(result_getter(ParseLexeme2(">", char_any)), '>');
+	EXPECT_EQ(result_getter(ParseLexeme2("?", char_any)), '?');
+	EXPECT_EQ(result_getter(ParseLexeme2("@", char_any)), '@');
+	EXPECT_EQ(result_getter(ParseLexeme2("[", char_any)), '[');
+	EXPECT_EQ(result_getter(ParseLexeme2("\\", char_any)), '\\');
+	EXPECT_EQ(result_getter(ParseLexeme2("]", char_any)), ']');
+	EXPECT_EQ(result_getter(ParseLexeme2("^", char_any)), '^');
+	EXPECT_EQ(result_getter(ParseLexeme2("_", char_any)), '_');
+	EXPECT_EQ(result_getter(ParseLexeme2("`", char_any)), '`');
+	EXPECT_EQ(result_getter(ParseLexeme2("{", char_any)), '{');
+	EXPECT_EQ(result_getter(ParseLexeme2("|", char_any)), '|');
+	EXPECT_EQ(result_getter(ParseLexeme2("}", char_any)), '}');
+	EXPECT_EQ(result_getter(ParseLexeme2("~", char_any)), '~');
+
+
+	EXPECT_EQ(result_getter(ParseLexemeNoSkip("\t", char_any)), '\t');
+	EXPECT_EQ(result_getter(ParseLexemeNoSkip("\r", char_any)), '\r');
+	EXPECT_EQ(result_getter(ParseLexemeNoSkip("\n", char_any)), '\n');
+	EXPECT_EQ(result_getter(ParseLexemeNoSkip(" ", char_any)), ' ');
+}
+
+TEST(TestBaseParser, TestCharAnyWChar)
+{
+	EXPECT_EQ(result_getter(ParseLexeme2(L"0", char_any)), L'0');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"1", char_any)), L'1');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"2", char_any)), L'2');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"3", char_any)), L'3');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"4", char_any)), L'4');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"5", char_any)), L'5');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"6", char_any)), L'6');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"7", char_any)), L'7');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"8", char_any)), L'8');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"9", char_any)), L'9');
+
+	EXPECT_EQ(result_getter(ParseLexeme2(L"a", char_any)), L'a');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"b", char_any)), L'b');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"c", char_any)), L'c');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"d", char_any)), L'd');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"z", char_any)), L'z');
+
+	EXPECT_EQ(result_getter(ParseLexeme2(L"A", char_any)), L'A');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"B", char_any)), L'B');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"C", char_any)), L'C');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"D", char_any)), L'D');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"Z", char_any)), L'Z');
+
+	EXPECT_EQ(result_getter(ParseLexeme2(L"!", char_any)), L'!');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"\"", char_any)), L'\"');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"#", char_any)), L'#');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"$", char_any)), L'$');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"%", char_any)), L'%');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"&", char_any)), L'&');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"'", char_any)), L'\'');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"(", char_any)), L'(');
+	EXPECT_EQ(result_getter(ParseLexeme2(L")", char_any)), L')');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"*", char_any)), L'*');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"+", char_any)), L'+');
+	EXPECT_EQ(result_getter(ParseLexeme2(L",", char_any)), L',');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"-", char_any)), L'-');
+	EXPECT_EQ(result_getter(ParseLexeme2(L".", char_any)), L'.');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"/", char_any)), L'/');
+	EXPECT_EQ(result_getter(ParseLexeme2(L":", char_any)), L':');
+	EXPECT_EQ(result_getter(ParseLexeme2(L";", char_any)), L';');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"<", char_any)), L'<');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"=", char_any)), L'=');
+	EXPECT_EQ(result_getter(ParseLexeme2(L">", char_any)), L'>');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"?", char_any)), L'?');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"@", char_any)), L'@');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"[", char_any)), L'[');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"\\", char_any)), L'\\');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"]", char_any)), L']');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"^", char_any)), L'^');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"_", char_any)), L'_');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"`", char_any)), L'`');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"{", char_any)), L'{');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"|", char_any)), L'|');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"}", char_any)), L'}');
+	EXPECT_EQ(result_getter(ParseLexeme2(L"~", char_any)), L'~');
+
+	EXPECT_EQ(result_getter(ParseLexemeNoSkip(L"\t", char_any)), L'\t');
+	EXPECT_EQ(result_getter(ParseLexemeNoSkip(L"\r", char_any)), L'\r');
+	EXPECT_EQ(result_getter(ParseLexemeNoSkip(L"\n", char_any)), L'\n');
+	EXPECT_EQ(result_getter(ParseLexemeNoSkip(L" ", char_any)), L' ');
+}

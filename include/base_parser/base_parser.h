@@ -1,9 +1,7 @@
-#pragma once
+﻿#pragma once
 
 #include "Scanners.h"
 #include "parser_with_action.h"
-
-
 
 template<typename TScanner>
 class ParserWithContext
@@ -17,7 +15,7 @@ public:
 	bool ParseNew(constCharPtrRef<CharType> ptr_string
 		, constCharPtrRef<CharType> ptr_string_end
 		, TContext&& context
-		, traits::scanners::attribute<TScanner, CharType, std::remove_cvref_t<TContext>>::type& attribute) const
+		, traits::attribute<TScanner, CharType, std::remove_cvref_t<TContext>>::type& attribute) const
 	{
 		context.UseSkipper(ptr_string, ptr_string_end);
 		return TScanner{}.ParseFunction(ptr_string, ptr_string_end, context, attribute);
@@ -26,7 +24,7 @@ public:
 	template<ConceptCharType CharType, ConceptContext TContext>
 	constexpr static auto GetReturnType()
 	{
-		return traits::scanners::attribute_t<TScanner, CharType, std::remove_cvref_t<TContext>>{};
+		return traits::attribute_t<TScanner, CharType, std::remove_cvref_t<TContext>>{};
 	}
 
 	auto operator[](auto callable) const
@@ -54,23 +52,26 @@ public:
 
 	constexpr ParserLiteralWithContext(constCharPtr<CharType>* literal) noexcept
 		: m_scanner{literal}
-	{
-	}
+	{}
+
+	constexpr ParserLiteralWithContext(CharType symbol) noexcept
+		: m_scanner{symbol}
+	{}
 
 	template<ConceptCharType CharType, ConceptContext TContext>
 	bool ParseNew(constCharPtrRef<CharType> ptr_string
 		, constCharPtrRef<CharType> ptr_string_end
 		, TContext&& context
-		, traits::scanners::attribute<scanner_type, CharType, std::remove_cvref_t<TContext>>::type& attribute) const
+		, traits::attribute<scanner_type, CharType, std::remove_cvref_t<TContext>>::type& attribute) const
 	{
 		context.UseSkipper(ptr_string, ptr_string_end);
 		return m_scanner.ParseFunction(ptr_string, ptr_string_end, context, attribute);
 	}
 
 	template<ConceptCharType CharType, ConceptContext TContext>
-	consteval static auto GetReturnType()
+	constexpr static auto GetReturnType()
 	{
-		return traits::scanners::attribute_t<TScanner<CharType>, CharType, std::remove_cvref_t<TContext>>{};
+		return traits::attribute_t<TScanner<CharType>, CharType, TContext>{};
 	}
 
 	auto operator[](auto callable) const
@@ -85,6 +86,8 @@ ParserLiteralWithContext(std::basic_string_view<CharType> literal) -> ParserLite
 template <ConceptCharType CharType>
 ParserLiteralWithContext(const CharType* literal) -> ParserLiteralWithContext<Scanners::CScannerStringRaw, CharType>;
 
+template <ConceptCharType CharType>
+ParserLiteralWithContext(CharType symbol) -> ParserLiteralWithContext<Scanners::CScannerCharRaw, CharType>;
 
 template<template<typename> class TScanner, ConceptCharType CharType>
 ParserLiteralWithContext(const ParserLiteralWithContext<TScanner, CharType>& other) -> ParserLiteralWithContext<TScanner, CharType>;
@@ -129,7 +132,8 @@ namespace aliases
 	constexpr auto char_xdigit = ParserWithContext<Scanners::_isxdigit>{};
 	constexpr auto char_lower = ParserWithContext<Scanners::_islower>{};
 	constexpr auto char_upper = ParserWithContext<Scanners::_isupper>{};
-	
+	constexpr auto char_any = ParserWithContext<CScannerСharAny>{};
+
 	constexpr auto space_	= ParserLiteralWithContext{ " " };
 	constexpr auto newline_	= ParserLiteralWithContext{ "\n" };
 	constexpr auto tab_		= ParserLiteralWithContext{ "\t" };

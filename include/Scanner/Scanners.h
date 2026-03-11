@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <limits>
 
@@ -301,9 +301,16 @@ namespace Scanners
 	DEFINE_STRING_FROM_STR_FUNCTION(islower_str, std::islower, std::iswlower);
 	DEFINE_STRING_FROM_STR_FUNCTION(isupper_str, std::isupper, std::iswupper);
 
+	FLOATING_POINT_SCANNER(scanner_float_ctx, std::strtof, std::wcstof);
+	FLOATING_POINT_SCANNER(scanner_double_ctx, std::strtod, std::wcstod);
+	FLOATING_POINT_SCANNER(scanner_long_double_ctx, std::strtold, std::wcstold);
 
-#include "scanners_num_ctx.h"
-#include "scanners_char_ctx.h"
+	INTEGER_SCANNER(scanner_int_cts, std::strtol, std::wcstol, 10);
+	INTEGER_SCANNER(scanner_uint_cts, std::strtoul, std::wcstoul, 10);
+	INTEGER_SCANNER(scanner_long_int_cts, std::strtoll, std::wcstoll, 10);
+	INTEGER_SCANNER(scanner_long_uint_cts, std::strtoull, std::wcstoull, 10);
+
+
 
 	template<ConceptCharType OwnCharType>
 	class CScannerStringRaw
@@ -358,27 +365,100 @@ namespace Scanners
 				return equal;
 			}
 			else
-				static_assert(false, "CScannerFloat::Parse() : forbidden char type");
+				static_assert(false, "CScannerStringRaw::Parse() : forbidden char type");
 		}
 
 	};
 
+
+	template<ConceptCharType OwnCharType>
+	class CScannerCharRaw
+	{
+		OwnCharType m_symbol;
+
+	public:
+		constexpr CScannerCharRaw(OwnCharType symbol) noexcept
+			: m_symbol{symbol}
+		{
+		};
+
+		template<ConceptCharType CharType, typename TContext>
+		constexpr static auto GetReturnType()
+		{
+			static_assert(std::is_same_v<CharType, OwnCharType>, "CScannerStringRaw::GetReturnType() : own char type != char type from ParseFunction");
+			return OwnCharType{};
+		}
+
+		template<ConceptCharType CharType, typename TContext>
+		bool ParseFunction(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TContext &&context, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &_val) const
+		{
+			CharType *ptr_end;
+
+			if(ptr_string >= ptr_string_end)
+				return false;
+
+			if constexpr(std::is_same_v<CharType, char> || std::is_same_v<CharType, wchar_t>)
+			{
+				const bool equal = *ptr_string == m_symbol;
+
+				if(equal)
+				{
+					if constexpr(!std::remove_cvref_t<TContext>::IsOmitedStatic())
+						_val = ptr_string;
+
+					ptr_string++;
+				}
+
+
+				return equal;
+			}
+			else
+				static_assert(false, "CScannerStringRaw::Parse() : forbidden char type");
+		}
+
+	};
 };
+
+
+class CScannerСharAny
+{
+public:
+	constexpr CScannerСharAny() noexcept = default;
+
+	template<ConceptCharType CharType, typename TContext>
+	constexpr static auto GetReturnType()
+	{
+		return CharType{};
+	}
+
+	template<ConceptCharType CharType, typename TContext>
+	bool ParseFunction(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TContext &&context, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &_val) const
+	{
+		if constexpr(!(std::is_same_v<CharType, char> || std::is_same_v<CharType, wchar_t>))
+			static_assert(false, "CScannerStringRaw::Parse() : forbidden char type");
+
+		if(ptr_string != ptr_string_end)
+		{
+			_val = *ptr_string++;
+			return true;
+		}
+
+		return false;
+	}
+
+};
+
 
 namespace traits
 {
-	namespace scanners
-	{
 		// this monstrosity should be hidden inside BaseParser class
-		template<typename TScanner, ConceptCharType CharType, typename TContext>
+		template<typename TParsingClass, ConceptCharType CharType, typename TContext>
 		struct attribute
 		{
-			using type = decltype(TScanner::template GetReturnType<CharType, TContext>());
+			using type = decltype(TParsingClass::template GetReturnType<CharType, TContext>());
 		};
 
 
-		template<typename TScanner, ConceptCharType CharType, typename TContext>
-		using attribute_t = attribute<std::remove_cvref_t<TScanner>, CharType, std::remove_cvref_t<TContext>>::type;
-	};
-
+		template<typename TParsingClass, ConceptCharType CharType, typename TContext>
+		using attribute_t = attribute<std::remove_cvref_t<TParsingClass>, CharType, std::remove_cvref_t<TContext>>::type;
 };
