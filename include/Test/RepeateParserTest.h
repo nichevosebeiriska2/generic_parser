@@ -3,7 +3,6 @@
 #include <gtest/gtest.h>
 
 #include "list.h"
-#include "Operators.h"
 #include "BaseParserTest.h"
 
 using namespace aliases;

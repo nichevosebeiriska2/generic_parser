@@ -98,13 +98,13 @@ ParserLiteralWithContext(ParserLiteralWithContext<TScanner, CharType>&& other) -
 
 namespace aliases
 {
-	constexpr auto int_			= ParserWithContext<Scanners::scanner_int_cts>{};
-	constexpr auto uint_			= ParserWithContext<Scanners::scanner_uint_cts>{};
+	constexpr auto int_					= ParserWithContext<Scanners::scanner_int_cts>{};
+	constexpr auto uint_				= ParserWithContext<Scanners::scanner_uint_cts>{};
 	constexpr auto long_int_		= ParserWithContext<Scanners::scanner_long_int_cts>{};
-	constexpr auto long_uint_	= ParserWithContext<Scanners::scanner_long_uint_cts>{};
+	constexpr auto long_uint_		= ParserWithContext<Scanners::scanner_long_uint_cts>{};
 
-	constexpr auto float_		= ParserWithContext<Scanners::scanner_float_ctx>{};
-	constexpr auto double_		= ParserWithContext<Scanners::scanner_double_ctx>{};
+	constexpr auto float_				= ParserWithContext<Scanners::scanner_float_ctx>{};
+	constexpr auto double_			= ParserWithContext<Scanners::scanner_double_ctx>{};
 	constexpr auto long_double_	= ParserWithContext<Scanners::scanner_long_double_ctx>{};
 
 	constexpr auto str_alpha = ParserWithContext<Scanners::_isalpha_str>{};
@@ -134,7 +134,7 @@ namespace aliases
 	constexpr auto char_upper = ParserWithContext<Scanners::_isupper>{};
 	constexpr auto char_any = ParserWithContext<CScannerСharAny>{};
 
-	constexpr auto space_	= ParserLiteralWithContext{ " " };
-	constexpr auto newline_	= ParserLiteralWithContext{ "\n" };
-	constexpr auto tab_		= ParserLiteralWithContext{ "\t" };
+	constexpr auto space_		= ParserLiteralWithContext{' '};
+	constexpr auto newline_	= ParserLiteralWithContext{'\n'};
+	constexpr auto tab_			= ParserLiteralWithContext{'\t'};
 }

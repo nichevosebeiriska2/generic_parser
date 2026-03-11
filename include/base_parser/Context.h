@@ -20,11 +20,14 @@ public:
 
 	void Skip(constCharPtrRef<CharType> ptr_string)
 	{
-		if constexpr (std::is_same_v<char, CharType>)
-				ptr_string += std::strspn(ptr_string, m_skip_symbols.data());
-		else
+		if constexpr(std::is_same_v<char, CharType>)
+			ptr_string += std::strspn(ptr_string, m_skip_symbols.data());
+
+		else if constexpr(std::is_same_v<wchar_t, CharType>)
 			ptr_string += std::wcsspn(ptr_string, m_skip_symbols.data());
-		
+
+		else
+			static_assert(false, "Skipper::Skip() - forbidden char type");
 	}
 };
 

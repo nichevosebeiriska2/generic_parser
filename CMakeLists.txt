@@ -30,15 +30,10 @@ add_executable(${PROJECT_NAME} ${SOURCE_FILES} ${HEADER_FILES})
 
 target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_SOURCE_DIR}/include/Constants
     ${CMAKE_SOURCE_DIR}/include/common
     ${CMAKE_SOURCE_DIR}/include/Scanner
-    ${CMAKE_SOURCE_DIR}/include/BaseParser
-    ${CMAKE_SOURCE_DIR}/include/CombinedParsers
-    ${CMAKE_SOURCE_DIR}/include/CombinedParsersNew
     ${CMAKE_SOURCE_DIR}/include/base_parser
     ${CMAKE_SOURCE_DIR}/include/combined_parsers
-    ${CMAKE_SOURCE_DIR}/include/ParsingRule
     ${CMAKE_SOURCE_DIR}/include/examples
     ${CMAKE_SOURCE_DIR}/include/examples/Json
     ${CMAKE_SOURCE_DIR}/include/Test
