@@ -7,18 +7,13 @@ namespace tuple_utils
 	namespace implementation// hide implementation from user inside 'implementation' namespace
 	{
 		template <typename T>
-		struct is_std_tuple : std::false_type
-		{
-		};
+		struct is_std_tuple : std::false_type{};
 
 		template <typename... Ts>
-		struct is_std_tuple<std::tuple<Ts...>> : std::true_type
-		{
-		};
+		struct is_std_tuple<std::tuple<Ts...>> : std::true_type{};
 
 		template <typename T>
 		constexpr bool is_std_tuple_v = is_std_tuple<std::decay_t<T>>::value;
-
 
 		template<typename T>
 		auto TupleDeleteParamsOfRequiredType_Impl(auto && ... args)
@@ -45,15 +40,6 @@ namespace tuple_utils
 			return std::make_tuple(std::forward<T>(t));
 	}
 
-	template <typename T>
-	constexpr auto as_tuple(const T &t)
-	{
-		if constexpr(implementation::is_std_tuple_v<std::decay_t<T>>)
-			return t;
-		else
-			return std::make_tuple(t);
-	}
-
 	template<typename ... Args>
 	constexpr auto concat_as_tuple(Args ... args)
 	{
@@ -74,42 +60,4 @@ namespace tuple_utils
 			return implementation::TupleDeleteParamsOfRequiredType_Impl<TRequiredToDelete>(std::forward<decltype(args)>(args)...);
 		}, tup_results);
 	}
-
-	template<size_t ... Ts, typename ... TParser>
-	void tuple_parsers_reset_all_impl(std::index_sequence<Ts...> indices, std::tuple<TParser...> tuple)
-	{
-		auto lambda_reset_if_not_omited = [](auto&& parser)
-			{
-				if  constexpr (!std::remove_cvref_t<decltype(parser)>::IsOmited())
-					parser.Reset();
-			};
-
-		(lambda_reset_if_not_omited(std::get<Ts>(tuple)), ...);
-	}
-
-	template<typename ... TParser>
-	void tuple_parsers_reset_all(std::tuple<TParser...> tuple)
-	{
-		auto indices = std::make_index_sequence<sizeof...(TParser)>{};
-		tuple_parsers_reset_all_impl(indices, tuple);
-	}
-
-	//template<size_t ... Ts, typename ... TParser>
-	//void tuple_parsers_deduce_return_types_impl(std::index_sequence<Ts...> indices, std::tuple<TParser...> tuple)
-	//{
-	//	auto lambda_reset_if_not_omited = [](auto &&parser)
-	//	{
-	//		if  constexpr(!std::remove_cvref_t<decltype(parser)>::IsOmited())
-	//			parser.Reset();
-	//	};
-
-	//	(lambda_reset_if_not_omited(std::get<Ts>(tuple)), ...);
-	//}
-
-	//template<typename ... TParser>
-	//void tuple_parsers_deduce_return_types(std::tuple<TParser...> tuple)
-	//{
-	//	auto indices = std::make_index_sequence<sizeof...(TParser)>{};
-	//	tuple_parsers_reset_al_impl(indices, tuple);
-	//}
 }

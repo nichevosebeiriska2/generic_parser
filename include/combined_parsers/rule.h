@@ -18,7 +18,7 @@ public:
 	bool ParseNew(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TContext&& context, std::type_identity_t<return_type>& attribute) const;
 };
 
-#define IMPLEMENT_RULE_NEW(decl, impl)\
+#define IMPLEMENT_RULE(decl, impl)\
 template<>\
 template<ConceptCharType CharType, ConceptContext TContext>\
 bool typename decltype(decl)::ParseNew(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end\

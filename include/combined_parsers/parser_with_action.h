@@ -52,7 +52,7 @@ public:
 		bool parsed = m_parser.ParseNew(ptr_string, ptr_string_end, context, parser_result);
 		actx.SetEnd(ptr_string);
 
-		if (parsed)
+		if(parsed)
 			attribute = m_action(actx);
 
 		return parsed;

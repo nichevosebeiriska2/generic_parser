@@ -7,66 +7,84 @@
 #include <string>
 #include <variant>
 
-#include "ParseRuleDeclaration.h"
-#include "ParserWithAction.h"
-#include "Operators.h"
+#include "rule.h"
+#include "base_parser.h"
+#include "parser_predicate_not.h"
+#include "list.h"
+#include "sequence.h"
+#include "alternative.h"
 
 struct SJsonObject;
 struct SJsonArray;
 
-struct SJsonValue	{ std::variant<std::monostate, bool, int, float, std::string, SJsonObject*, SJsonArray*> m_value; };
-struct SJsonObject	{ std::map<std::string, SJsonValue> m_mapValues; };
-struct SJsonArray	{ std::vector<SJsonValue> m_vecValues; };
+struct SJsonValue
+{
+	std::variant<std::monostate, bool, int, float, std::string, SJsonArray *, SJsonObject *> m_value;
+};
 
-// declare rules for json parser
-// tag1,tag2, tag3 is just a template parameter to differ ParseRule-s with same return type;
-ParseRule<class tag1, SJsonValue>	value;
-ParseRule<class tag2, SJsonValue>	arr;
-ParseRule<class tag3, SJsonValue>	object;
+struct SJsonObject
+{
+	std::map<std::string, SJsonValue> m_values;
+};
+struct SJsonArray
+{
+	std::vector<SJsonValue> m_values;
+};
 
-using namespace Parsers;
+RuleNew<class tag_value, SJsonValue> value;
+RuleNew<class tag_object, SJsonValue> object;
+RuleNew<class tag_array, SJsonValue> array;
 
-// actions
-auto return_null = []() { return std::monostate{}; };
-auto return_bool_true = []() { return true; };
-auto return_bool_false = []() { return true; };
-auto return_bool = [](auto&& json_bool_variant_value) {return std::visit([](auto&& bool_value) {return bool_value; }, json_bool_variant_value); };
-auto return_raw_string = [](auto&& variant_pair_pointers) {
-		auto [ptr_begin, ptr_end] = std::get<0>(variant_pair_pointers);
-		return std::string{ ptr_begin , ptr_end };
-	};
+auto action_on_null = [](auto &ctx)
+{
+	return std::monostate{};
+};
+auto action_on_bool = [](auto &ctx)
+{
+	return true;
+};
+auto action_on_str = [](auto &ctx)
+{
+	return std::string{ctx.Begin(), ctx.End()};
+};
 
+auto action_on_array = [](auto &ctx)
+{
+	auto pArray = new SJsonArray;
+	for(auto &value : std::get<1>(ctx.GetValue()))
+		pArray->m_values.emplace_back(std::move(value));
 
-auto return_json_obj = [](auto&& tuple_pairs_name_value)
+	return SJsonValue{pArray};
+};
+
+auto action_on_object = [](auto &ctx)
+{
+	auto pObject = new SJsonObject;
+	for(auto [name, unused, value] : std::get<1>(ctx.GetValue()))
+		pObject->m_values[std::move(name)] = SJsonValue{std::move(value)};
+
+	return SJsonValue{pObject};
+};
+
+auto action_on_value = [](auto &ctx)
+{
+	return std::visit([](auto &&arg)
 	{
-		auto* pObject = new SJsonObject;
-
-		for (auto& [name, value] : std::get<0>(tuple_pairs_name_value))
-			pObject->m_mapValues[name] = std::move(value);
-
-		return SJsonValue{ pObject };
-	};
-
-auto return_json_array = [](auto&& tuple) { return SJsonValue{ new SJsonArray{ std::get<0>(tuple) } }; };
-auto return_json_value = [](auto&& arg) { return std::visit([](auto&& jsonValue) {return SJsonValue{ jsonValue }; }, arg); };
-
-// \ actions
-
-auto parser_string			= (*((!(_string_lit{"\""})) >> ((_string_lit{"\\\""}) | (_string_lit{"\n"} | "\t" | "\r") | type_char::_char{}))) ; // if next symol is not " try to parse escaped quotes or escape symbol or any other char
-auto parser_json_string		= raw((("\"" >> parser_string >> "\"") ))[return_raw_string];
-
-auto parser_json_array = ("[" >> (*(value % ",")) >> "]") [return_json_array];// array
-auto parser_json_object = ("{" >> *((parser_json_string >> ":" >> value) % ",") >> "}")[return_json_obj];// object
-auto parser_json_value = (_string_lit{"null"}[return_null] 
-													| (_string_lit{"true"}[return_bool_true] | _string_lit{"false"}[return_bool_false])[return_bool]
-													| _float{} 
-													| _int{} 
-													| parser_json_string 
-													| parser_json_array 
-													| parser_json_object)[return_json_value];// value
+		return SJsonValue{arg};
+	}, ctx.GetValue());
+};
 
 
-// implement parsing rules
-ImplementParsingRule(value, parser_json_value);
-ImplementParsingRule(arr, parser_json_array);
-ImplementParsingRule(object, parser_json_object);
+auto parser_null = (ParserLiteralWithContext{"null"})[action_on_null];
+auto parser_bool = (ParserLiteralWithContext{"true"} |  ParserLiteralWithContext{"false"})[action_on_bool];
+auto parser_int = aliases::int_;
+auto parser_float = aliases::float_;
+auto parser_string = ("\"" >> (*(!ParserLiteralWithContext{"\""} >> ("\\\"" | aliases::char_any))) >> "\"")[action_on_str];
+
+auto parser_object = "{" >> (*((parser_string >> ":" >> value) % ",")) >> "}";
+auto parser_array = "[" >> (*(value % ",")) >> "]";
+auto parser_value = object | array | parser_null | parser_bool  | parser_float | parser_int | parser_string;
+
+IMPLEMENT_RULE(object, parser_object[action_on_object]);
+IMPLEMENT_RULE(array, parser_array[action_on_array]);
+IMPLEMENT_RULE(value, parser_value[action_on_value]);

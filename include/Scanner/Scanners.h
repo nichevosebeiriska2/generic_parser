@@ -5,310 +5,47 @@
 #include "common.h"
 #include "Constants.h"
 #include "Context.h"
-#include "ScanningFunctions.h"
+
+#include <cctype>
+#include <cwctype>
+
 
 namespace Scanners
 {
+	DEFINE_CHAR_PARSER_WITH_STD_FUNCTIONS(isalpha,	std::isalpha,		std::iswalpha);
+	DEFINE_CHAR_PARSER_WITH_STD_FUNCTIONS(isalnum,	std::isalnum,		std::iswalnum);
+	DEFINE_CHAR_PARSER_WITH_STD_FUNCTIONS(isdigit,	std::isdigit,		std::iswdigit);
+	DEFINE_CHAR_PARSER_WITH_STD_FUNCTIONS(isblank,	std::isblank,		std::iswblank);
+	DEFINE_CHAR_PARSER_WITH_STD_FUNCTIONS(iscntrl,	std::iscntrl,		std::iswcntrl);
+	DEFINE_CHAR_PARSER_WITH_STD_FUNCTIONS(isgraph,	std::isgraph,		std::iswgraph);
+	DEFINE_CHAR_PARSER_WITH_STD_FUNCTIONS(isprint,	std::isprint,		std::iswprint);
+	DEFINE_CHAR_PARSER_WITH_STD_FUNCTIONS(ispunct,	std::ispunct,		std::iswpunct);
+	DEFINE_CHAR_PARSER_WITH_STD_FUNCTIONS(isspace,	std::isspace,		std::iswspace);
+	DEFINE_CHAR_PARSER_WITH_STD_FUNCTIONS(isxdigit, std::isxdigit,	std::iswxdigit);
+	DEFINE_CHAR_PARSER_WITH_STD_FUNCTIONS(islower,	std::islower,		std::iswlower);
+	DEFINE_CHAR_PARSER_WITH_STD_FUNCTIONS(isupper,	std::isupper,		std::iswupper);
 
-	template<ConceptCharType CharType>
-	class InterfaceScanner
-	{
-	public:
-		using internal_char_type = CharType;
-		static constexpr int CONST_MAX_CHARS_SEQUENCE = std::numeric_limits<int>::max();
+	DEFINE_STRING_PARSER_WITH_STD_FUNCTIONS(isalpha_str, std::isalpha, std::iswalpha);
+	DEFINE_STRING_PARSER_WITH_STD_FUNCTIONS(isalnum_str, std::isalnum, std::iswalnum);
+	DEFINE_STRING_PARSER_WITH_STD_FUNCTIONS(isdigit_str, std::isdigit, std::iswdigit);
+	DEFINE_STRING_PARSER_WITH_STD_FUNCTIONS(isblank_str, std::isblank, std::iswblank);
+	DEFINE_STRING_PARSER_WITH_STD_FUNCTIONS(iscntrl_str, std::iscntrl, std::iswcntrl);
+	DEFINE_STRING_PARSER_WITH_STD_FUNCTIONS(isgraph_str, std::isgraph, std::iswgraph);
+	DEFINE_STRING_PARSER_WITH_STD_FUNCTIONS(isprint_str, std::isprint, std::iswprint);
+	DEFINE_STRING_PARSER_WITH_STD_FUNCTIONS(ispunct_str, std::ispunct, std::iswpunct);
+	DEFINE_STRING_PARSER_WITH_STD_FUNCTIONS(isspace_str, std::isspace, std::iswspace);
+	DEFINE_STRING_PARSER_WITH_STD_FUNCTIONS(isxdigit_str, std::isxdigit, std::iswxdigit);
+	DEFINE_STRING_PARSER_WITH_STD_FUNCTIONS(islower_str, std::islower, std::iswlower);
+	DEFINE_STRING_PARSER_WITH_STD_FUNCTIONS(isupper_str, std::isupper, std::iswupper);
 
-	protected:
-		int number_of_scanned_chars = 0;
+	DEFINE_FLOAT_PARSER_WITH_STD_FUNCTIONS(scanner_float_ctx, std::strtof, std::wcstof);
+	DEFINE_FLOAT_PARSER_WITH_STD_FUNCTIONS(scanner_double_ctx, std::strtod, std::wcstod);
+	DEFINE_FLOAT_PARSER_WITH_STD_FUNCTIONS(scanner_long_double_ctx, std::strtold, std::wcstold);
 
-	public:
-		constexpr InterfaceScanner() = default;
-
-		int GetNumberOfScannedChars()
-		{
-			return number_of_scanned_chars;
-		}
-	};
-
-	template<ConceptCharType CharType>
-	class ScannerInteger : public InterfaceScanner<CharType>
-	{
-	public:
-		using TInterface = InterfaceScanner<CharType>;
-		using internal_char_type = TInterface::internal_char_type;
-
-	public:
-		constexpr ScannerInteger() = default;
-		template<ConceptCharType CharType>
-		bool Scan(constCharPtr<CharType> ptr_to_string, constCharPtr<CharType> ptr_to_string_end)
-		{
-			return (TInterface::number_of_scanned_chars = ScanStringForInteger(ptr_to_string, ptr_to_string_end)) > 0;
-		}
-	};
-
-	template<ConceptCharType CharType>
-	class ScannerFloat : public InterfaceScanner<CharType>
-	{
-	public:
-		using TInterface = InterfaceScanner<CharType>;
-		using internal_char_type = TInterface::internal_char_type;
-
-	public:
-		constexpr ScannerFloat() = default;
-
-		template<ConceptCharType CharType>
-		bool Scan(constCharPtr<CharType> ptr_to_string, constCharPtr<CharType> ptr_to_string_end)
-		{
-			return (TInterface::number_of_scanned_chars = ScanStringForFloat(ptr_to_string, ptr_to_string_end)) > 0;
-		}
-	};
-
-	template<ConceptCharType CharType>
-	class ScannerStringLiteral : public InterfaceScanner<CharType>
-	{
-	public:
-		using TInterface = InterfaceScanner<CharType>;
-		using internal_char_type = TInterface::internal_char_type;
-
-	protected:
-		std::basic_string_view<CharType> literal;
-
-	public:
-		constexpr ScannerStringLiteral(std::basic_string_view<CharType> strview)
-			: literal(strview)
-		{
-		}
-
-		constexpr ScannerStringLiteral(const ScannerStringLiteral<CharType> &other)
-			: literal(other.literal)
-		{
-		}
-
-		constexpr ScannerStringLiteral(ScannerStringLiteral<CharType> &&other)
-			: literal(other.literal)
-		{
-		}
-
-		bool Scan(const TInterface::internal_char_type *ptr_to_string, const TInterface::internal_char_type *ptr_to_string_end)
-		{
-			bool parsed = ScanStringForLiteralString(ptr_to_string, ptr_to_string_end, literal.data());
-			TInterface::number_of_scanned_chars = parsed ? literal.length() : 0;
-
-			return parsed;
-		}
-
-		constexpr std::basic_string_view<CharType> GetLiteral() noexcept
-		{
-			return literal;
-		}
-	};
-
-	template<ConceptCharType CharType>
-	class ScannerStringLiteralRaw : public InterfaceScanner<CharType>
-	{
-	public:
-		using TInterface = InterfaceScanner<CharType>;
-		using internal_char_type = TInterface::internal_char_type;
-
-	protected:
-		std::basic_string_view<CharType> m_str_prefix;
-		std::basic_string_view<CharType> m_str_postfix;
-
-	public:
-		constexpr ScannerStringLiteralRaw(std::basic_string_view<CharType> str_prefix, std::basic_string_view<CharType> str_postfix)
-			: m_str_prefix{str_prefix}
-			, m_str_postfix{str_postfix}
-		{
-		}
-
-		bool Scan(const TInterface::internal_char_type *ptr_to_string, const TInterface::internal_char_type *ptr_to_string_end)
-		{
-			if(m_str_prefix.length() + m_str_postfix.length() > (ptr_to_string_end - ptr_to_string))
-				return false;
-
-			if constexpr(std::is_same_v<CharType, char>)
-			{
-				const CharType *ptr = nullptr;
-				if((strncmp(ptr_to_string, m_str_prefix.data(), m_str_prefix.length()) == 0))
-				{
-					if(ptr = std::strstr(ptr_to_string + m_str_prefix.length(), m_str_postfix.data()); ptr)
-					{
-						TInterface::number_of_scanned_chars = (ptr - ptr_to_string) + m_str_postfix.length();
-						return true;
-					}
-				}
-
-				TInterface::number_of_scanned_chars = 0;
-				return false;
-			}
-			else if constexpr(std::is_same_v<CharType, wchar_t>)
-			{
-				const CharType *ptr = nullptr;
-				if((wcsncmp(ptr_to_string, m_str_prefix.data(), m_str_prefix.length()) == 0))
-				{
-					if(ptr = std::wcsstr(ptr_to_string + m_str_prefix.length(), m_str_postfix.data()))
-					{
-						TInterface::number_of_scanned_chars = (ptr - ptr_to_string) + m_str_postfix.length();
-						return true;
-					}
-				}
-
-				TInterface::number_of_scanned_chars = 0;
-				return false;
-			}
-			else
-				static_assert(false, "ScannerStringLiteralRaw::Scan() - forbiden char type");
-
-			return false;
-		}
-	};
-
-
-	template<ConceptCharType CharType>
-	class ScannerCharAny : public InterfaceScanner<CharType>
-	{
-	public:
-		using TInterface = InterfaceScanner<CharType>;
-		using internal_char_type = TInterface::internal_char_type;
-
-	public:
-		constexpr ScannerCharAny()
-		{
-		}
-
-		template<ConceptCharType CharType>
-		bool Scan(constCharPtr<CharType> ptr_to_string, constCharPtr<CharType> ptr_to_string_end)
-		{
-			return (TInterface::number_of_scanned_chars = ptr_to_string < ptr_to_string_end) > 0;
-		}
-	};
-
-	template<ConceptCharType CharType>
-	class ScannerSymbolLiteral : public InterfaceScanner<CharType>
-	{
-	public:
-		using TInterface = InterfaceScanner<CharType>;
-		using internal_char_type = TInterface::internal_char_type;
-
-	protected:
-		CharType symbol;
-
-	public:
-		constexpr ScannerSymbolLiteral(CharType sym)
-			: symbol(sym)
-		{
-		}
-
-		bool Scan(const TInterface::internal_char_type *ptr_to_string, const TInterface::internal_char_type *ptr_to_string_end)
-		{
-			return (TInterface::number_of_scanned_chars = ScanStringForSymbol(ptr_to_string, ptr_to_string_end, symbol)) > 0;
-		}
-	};
-
-
-	template<ConceptCharType CharType>
-	class ScannerString : public InterfaceScanner<CharType>
-	{
-	public:
-		using TInterface = InterfaceScanner<CharType>;
-		using internal_char_type = TInterface::internal_char_type;
-
-	public:
-		constexpr ScannerString() = default;
-
-		bool Scan(const TInterface::internal_char_type *ptr_to_string, const TInterface::internal_char_type *ptr_to_string_end)
-		{
-			return (TInterface::number_of_scanned_chars = ScanStringForString(ptr_to_string, ptr_to_string_end)) > 0;
-		}
-	};
-
-	template<ConceptCharType CharType>
-	class ScannerChar : public InterfaceScanner<CharType>
-	{
-	public:
-		using TInterface = InterfaceScanner<CharType>;
-		using internal_char_type = TInterface::internal_char_type;
-
-	public:
-		constexpr ScannerChar() = default;
-
-		bool Scan(const TInterface::internal_char_type *ptr_to_string, const TInterface::internal_char_type *ptr_to_string_end)
-		{
-			return (TInterface::number_of_scanned_chars = ScanStringForString(ptr_to_string, ptr_to_string_end)) > 0;
-		}
-	};
-
-	template<ConceptCharType CharType>
-	class ScannerStringAlnum : public InterfaceScanner<CharType>
-	{
-	public:
-		using TInterface = InterfaceScanner<CharType>;
-		using internal_char_type = TInterface::internal_char_type;
-
-	public:
-		constexpr ScannerStringAlnum() = default;
-
-		bool Scan(const TInterface::internal_char_type *ptr_to_string, const TInterface::internal_char_type *ptr_to_string_end)
-		{
-			return (TInterface::number_of_scanned_chars = ScanStringForStringAlnum(ptr_to_string, ptr_to_string_end)) > 0;
-		}
-	};
-
-
-	template<ConceptCharType CharType>
-	class ScannerSingleSymbol : public InterfaceScanner<CharType>
-	{
-	public:
-		using TInterface = InterfaceScanner<CharType>;
-		using internal_char_type = TInterface::internal_char_type;
-		CharType symbol_to_find;
-
-	public:
-		constexpr ScannerSingleSymbol(CharType sym)
-			: symbol_to_find{sym}
-		{
-		};
-
-		bool Scan(const TInterface::internal_char_type *ptr_to_string, const TInterface::internal_char_type *ptr_to_string_end)
-		{
-			TInterface::number_of_scanned_chars = ScanStringForSymbol(ptr_to_string, ptr_to_string_end, symbol_to_find);
-			return TInterface::number_of_scanned_chars > 0;
-		}
-	};
-
-	DEFINE_CHAR_FROM_STR_FUNCTION(isalpha,	std::isalpha,		std::iswalpha);
-	DEFINE_CHAR_FROM_STR_FUNCTION(isalnum,	std::isalnum,		std::iswalnum);
-	DEFINE_CHAR_FROM_STR_FUNCTION(isdigit,	std::isdigit,		std::iswdigit);
-	DEFINE_CHAR_FROM_STR_FUNCTION(isblank,	std::isblank,		std::iswblank);
-	DEFINE_CHAR_FROM_STR_FUNCTION(iscntrl,	std::iscntrl,		std::iswcntrl);
-	DEFINE_CHAR_FROM_STR_FUNCTION(isgraph,	std::isgraph,		std::iswgraph);
-	DEFINE_CHAR_FROM_STR_FUNCTION(isprint,	std::isprint,		std::iswprint);
-	DEFINE_CHAR_FROM_STR_FUNCTION(ispunct,	std::ispunct,		std::iswpunct);
-	DEFINE_CHAR_FROM_STR_FUNCTION(isspace,	std::isspace,		std::iswspace);
-	DEFINE_CHAR_FROM_STR_FUNCTION(isxdigit, std::isxdigit,	std::iswxdigit);
-	DEFINE_CHAR_FROM_STR_FUNCTION(islower,	std::islower,		std::iswlower);
-	DEFINE_CHAR_FROM_STR_FUNCTION(isupper,	std::isupper,		std::iswupper);
-
-	DEFINE_STRING_FROM_STR_FUNCTION(isalpha_str, std::isalpha, std::iswalpha);
-	DEFINE_STRING_FROM_STR_FUNCTION(isalnum_str, std::isalnum, std::iswalnum);
-	DEFINE_STRING_FROM_STR_FUNCTION(isdigit_str, std::isdigit, std::iswdigit);
-	DEFINE_STRING_FROM_STR_FUNCTION(isblank_str, std::isblank, std::iswblank);
-	DEFINE_STRING_FROM_STR_FUNCTION(iscntrl_str, std::iscntrl, std::iswcntrl);
-	DEFINE_STRING_FROM_STR_FUNCTION(isgraph_str, std::isgraph, std::iswgraph);
-	DEFINE_STRING_FROM_STR_FUNCTION(isprint_str, std::isprint, std::iswprint);
-	DEFINE_STRING_FROM_STR_FUNCTION(ispunct_str, std::ispunct, std::iswpunct);
-	DEFINE_STRING_FROM_STR_FUNCTION(isspace_str, std::isspace, std::iswspace);
-	DEFINE_STRING_FROM_STR_FUNCTION(isxdigit_str, std::isxdigit, std::iswxdigit);
-	DEFINE_STRING_FROM_STR_FUNCTION(islower_str, std::islower, std::iswlower);
-	DEFINE_STRING_FROM_STR_FUNCTION(isupper_str, std::isupper, std::iswupper);
-
-	FLOATING_POINT_SCANNER(scanner_float_ctx, std::strtof, std::wcstof);
-	FLOATING_POINT_SCANNER(scanner_double_ctx, std::strtod, std::wcstod);
-	FLOATING_POINT_SCANNER(scanner_long_double_ctx, std::strtold, std::wcstold);
-
-	INTEGER_SCANNER(scanner_int_cts, std::strtol, std::wcstol, 10);
-	INTEGER_SCANNER(scanner_uint_cts, std::strtoul, std::wcstoul, 10);
-	INTEGER_SCANNER(scanner_long_int_cts, std::strtoll, std::wcstoll, 10);
-	INTEGER_SCANNER(scanner_long_uint_cts, std::strtoull, std::wcstoull, 10);
+	DEFINE_INTEGER_PARSER_WITH_STD_FUNCTIONS(scanner_int_cts, std::strtol, std::wcstol, 10);
+	DEFINE_INTEGER_PARSER_WITH_STD_FUNCTIONS(scanner_uint_cts, std::strtoul, std::wcstoul, 10);
+	DEFINE_INTEGER_PARSER_WITH_STD_FUNCTIONS(scanner_long_int_cts, std::strtoll, std::wcstoll, 10);
+	DEFINE_INTEGER_PARSER_WITH_STD_FUNCTIONS(scanner_long_uint_cts, std::strtoull, std::wcstoull, 10);
 
 
 
@@ -332,8 +69,6 @@ namespace Scanners
 		template<ConceptCharType CharType, typename TContext>
 		bool ParseFunction(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TContext &&context, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &_val) const
 		{
-			CharType *ptr_end;
-
 			if(ptr_string_end - ptr_string < m_literal.length())
 				return false;
 
@@ -347,7 +82,6 @@ namespace Scanners
 					if constexpr(!std::remove_cvref_t<TContext>::IsOmitedStatic())
 						_val = m_literal;
 				}
-
 				
 				return equal;
 			}
@@ -392,8 +126,6 @@ namespace Scanners
 		template<ConceptCharType CharType, typename TContext>
 		bool ParseFunction(constCharPtrRef<CharType> ptr_string, constCharPtrRef<CharType> ptr_string_end, TContext &&context, std::type_identity_t<decltype(GetReturnType<CharType, TContext>())> &_val) const
 		{
-			CharType *ptr_end;
-
 			if(ptr_string >= ptr_string_end)
 				return false;
 
@@ -439,13 +171,14 @@ public:
 
 		if(ptr_string != ptr_string_end)
 		{
-			_val = *ptr_string++;
+			if constexpr(!std::remove_cvref_t<TContext>::IsOmitedStatic())
+				_val = *ptr_string++;
+
 			return true;
 		}
 
 		return false;
 	}
-
 };
 
 
