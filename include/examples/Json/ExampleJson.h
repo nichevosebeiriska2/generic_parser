@@ -79,7 +79,7 @@ auto parser_null = (ParserLiteralWithContext{"null"})[action_on_null];
 auto parser_bool = (ParserLiteralWithContext{"true"} |  ParserLiteralWithContext{"false"})[action_on_bool];
 auto parser_int = aliases::int_;
 auto parser_float = aliases::float_;
-auto parser_string = ("\"" >> (*(!ParserLiteralWithContext{"\""} >> ("\\\"" | aliases::char_any))) >> "\"")[action_on_str];
+auto parser_string = ("\"" >> (*(!ParserLiteralWithContext{"\""} >> ("\\\"" | ParserLiteralWithContext{"\\\\"} |aliases::char_any))) >> "\"")[action_on_str];
 
 auto parser_object = "{" >> (*((parser_string >> ":" >> value) % ",")) >> "}";
 auto parser_array = "[" >> (*(value % ",")) >> "]";

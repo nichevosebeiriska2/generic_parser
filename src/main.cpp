@@ -31,20 +31,23 @@ std::filesystem::path path_to_meta = R"(C:\Users\dmileykin\source\repos\figma_pa
 std::filesystem::path path_to_scheme = R"(C:\Users\dmileykin\source\repos\figma_parser\build2\Debug\output\scheme.json)";
 std::filesystem::path path_to_data = R"(C:\Users\dmileykin\source\repos\figma_parser\build2\Debug\output\data.json)";
 
-std::filesystem::path large_file = R"(C:\Users\dmileykin\source\repos\generic_parser\include\examples\Json\large.txt)";
-std::filesystem::path extra_large_file = R"(C:\Users\dmileykin\source\repos\generic_parser\include\examples\Json\extra_large.txt)";
-std::filesystem::path formatted_64kb = R"(C:\Users\dmileykin\source\repos\generic_parser\include\examples\Json\formatted\64kb.txt)";
-std::filesystem::path formatted_128kb = R"(C:\Users\dmileykin\source\repos\generic_parser\include\examples\Json\formatted\128kb.txt)";
-std::filesystem::path formatted_256kb = R"(C:\Users\dmileykin\source\repos\generic_parser\include\examples\Json\formatted\256kb.txt)";
-std::filesystem::path formatted_512kb = R"(C:\Users\dmileykin\source\repos\generic_parser\include\examples\Json\formatted\512kb.txt)";
-std::filesystem::path formatted_1mb = R"(C:\Users\dmileykin\source\repos\generic_parser\include\examples\Json\formatted\1mb.txt)";
-std::filesystem::path formatted_5mb = R"(C:\Users\dmileykin\source\repos\generic_parser\include\examples\Json\formatted\5mb.txt)";
+std::filesystem::path large_file				= R"(C:\Users\dmileykin\source\repos\generic_parser\include\examples\Json\large.txt)";
+std::filesystem::path extra_large_file	= R"(C:\Users\dmileykin\source\repos\generic_parser\include\examples\Json\extra_large.txt)";
+std::filesystem::path formatted_64kb		= R"(C:\Users\dmileykin\source\repos\generic_parser\include\examples\Json\formatted\64kb.txt)";
+std::filesystem::path formatted_128kb		= R"(C:\Users\dmileykin\source\repos\generic_parser\include\examples\Json\formatted\128kb.txt)";
+std::filesystem::path formatted_256kb		= R"(C:\Users\dmileykin\source\repos\generic_parser\include\examples\Json\formatted\256kb.txt)";
+std::filesystem::path formatted_512kb		= R"(C:\Users\dmileykin\source\repos\generic_parser\include\examples\Json\formatted\512kb.txt)";
+std::filesystem::path formatted_1mb			= R"(C:\Users\dmileykin\source\repos\generic_parser\include\examples\Json\formatted\1mb.txt)";
+std::filesystem::path formatted_5mb			= R"(C:\Users\dmileykin\source\repos\generic_parser\include\examples\Json\formatted\5mb.txt)";
 
 #include <benchmark/benchmark.h>
 
+#include "calculator.h"
+
 int main(int argc, char** argv)
 {
-	std::string strInput = read_file(extra_large_file.generic_string());
+	auto [calc_status, calc_res] = ParseLexeme2("23.0 + 1.0", expression);
+	std::string strInput = read_file(path_to_data.generic_string());
 	auto [status, res] = ParseLexeme2(strInput, value);
 	//auto [status, res] = ParseLexeme2(strjson, value);
 

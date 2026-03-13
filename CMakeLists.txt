@@ -42,6 +42,7 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${CMAKE_SOURCE_DIR}/include/combined_parsers
     ${CMAKE_SOURCE_DIR}/include/examples
     ${CMAKE_SOURCE_DIR}/include/examples/Json
+    ${CMAKE_SOURCE_DIR}/include/examples/calculator
     ${CMAKE_SOURCE_DIR}/include/Test
 )
 
