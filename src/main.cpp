@@ -46,7 +46,7 @@ std::filesystem::path formatted_5mb			= R"(C:\Users\dmileykin\source\repos\gener
 
 int main(int argc, char** argv)
 {
-	auto [calc_status, calc_res] = ParseLexeme2("23.0 + 1.0", expression);
+	auto [calc_status, calc_res] = ParseLexeme2("23.0 - 1  / 2 ", expression);
 	std::string strInput = read_file(path_to_data.generic_string());
 	auto [status, res] = ParseLexeme2(strInput, value);
 	//auto [status, res] = ParseLexeme2(strjson, value);
