@@ -2,113 +2,66 @@
 
 #include "parsing.h"
 
+/*
 
-struct SFactor{ float m_value;};
-struct STerm : public SFactor {};
-struct SExpression : public SFactor {};
+ Grammar : 
 
-RuleNew<class tag_factor, SFactor>			factor;
-RuleNew<class tag_term, STerm>				term;
-RuleNew<class tag_term_tail, STerm>			term_tail;
-RuleNew<class tag_expr, SExpression>		expression;
-RuleNew<class tag_expr_tail, SExpression>	expression_tail;
+	factor	-> <number> | "(" <expr> ")"
+	term		-> <term> "*" <factor> | <term> "/" <factor>
+	expr		-> <term> | <term> "+" <expr> | <term> "-" <expr>
 
-auto parser_number = aliases::float_;
-auto action_on_term_multiplied_with_factor	= [](auto& ctx){
-	const auto &term_value = std::get<0>(ctx.GetValue()).m_value;
-	const auto &factor_value = std::get<2>(ctx.GetValue()).m_value;
-	return STerm{term_value * factor_value};
-};
+	Have to be replaced with equivalent one to exclude left reqursion: 
 
-auto action_on_term_divided_with_factor			= [](auto& ctx){
-	
-	const auto &term_value = std::get<0>(ctx.GetValue()).m_value;
-	const auto &factor_value = std::get<2>(ctx.GetValue()).m_value;
-	return STerm{term_value / factor_value};
-};
-auto action_factor_to_term									= [](auto ctx){
-	return STerm{ctx.GetValue()};
-};
+	factor		-> <number> | "("  <expr> ")"
+	term_tail -> { "*" | "/" } <term_tail> | {} // list of numbers with mult/divide or nothing
+	expr_tail -> { "+" | "-" } <expr_tail> | {} // list of numbers with plus/minus or nothing
+	term			-> <factor> <term_tail>						// term with optional list of multipliers
+	expr			-> <term> <expr_tail>							// expression with optional list of terms  
 
-auto action_expr_parser_result_to_term			= [](auto& ctx)->SExpression 
-{
-	return SExpression{ std::visit([](auto && arg){return arg.m_value;}, ctx.GetValue())}; 
-};
-auto action_term_parser_result_to_term			= [](auto& ctx)->STerm {
-	return STerm{ std::visit([](auto && arg){return arg.m_value;}, ctx.GetValue())};
-};
+*/
 
-auto action_on_factor_in_brackets	= [](auto& ctx){return SFactor{std::get<1>(ctx.GetValue()).m_value}; }; // "(" factor ")" -> factor
-auto action_of_factor = [](auto& ctx){
-	return std::visit([](auto&& f){return SFactor{f};}, ctx.GetValue()); 
-}; //
 
-auto parser_factor = (
-	aliases::float_  | ("(" >> expression >> ")")[action_on_factor_in_brackets]
-)[action_of_factor];
+RuleNew<class tag_factor,			float>	factor;
+RuleNew<class tag_term,				float>	term;
+RuleNew<class tag_term_tail,	float>	term_tail;
+RuleNew<class tag_expr,				float>	expression;
+RuleNew<class tag_expr_tail,	float>	expression_tail;
 
-auto on_end_of_string = [](auto& ctx) {return SExpression{ 0 }; };
-auto term_plus_tail = [](auto& ctx) {
-	return SExpression{ std::get<1>(ctx.GetValue()).m_value + std::get<2>(ctx.GetValue()).m_value };
-};
-auto term_minus_tail = [](auto& ctx) {
-	return SExpression{ -std::get<1>(ctx.GetValue()).m_value + std::get<2>(ctx.GetValue()).m_value };
-	};
+auto action_var_float_to_float = [](auto &ctx) { return std::visit([](auto&& f){return f;}, ctx.GetValue()); };
+auto action_on_factor_in_brackets	= [](auto& ctx){return std::get<1>(ctx.GetValue()); }; // "(" factor ")" -> factor
 
-auto term_mult_termtail = [](auto& ctx) {
-	return SExpression{ std::get<1>(ctx.GetValue()).m_value * std::get<2>(ctx.GetValue()).m_value };
-	};
+auto parser_factor = ( aliases::float_  | ("(" >> expression >> ")")[action_on_factor_in_brackets])[action_var_float_to_float];
 
-auto term_div_termtail = [](auto& ctx) {
-	return SExpression{ 1 / (std::get<1>(ctx.GetValue()).m_value * std::get<2>(ctx.GetValue()).m_value) };
-	};
-// zero or move +term / -term
+auto return_default_expr = [](auto& ctx) { return 0.0f; };
+auto return_default_term = [](auto& ctx) { return 1.0f; };
+auto action_minus_term_and_tail =		[](auto& ctx) { const auto &[op, term, tail] = ctx.GetValue();		return (- term + tail); };
+auto action_plus_term_and_tail =		[](auto& ctx) { const auto &[op, term, tail] = ctx.GetValue();		return (  term + tail); };
+auto action_mult_factor_and_tail =	[](auto& ctx) { const auto &[op, factor, tail] = ctx.GetValue();	return       factor * tail; };
+auto action_div_factor_and_tail =		[](auto& ctx) { const auto &[op, factor, tail] = ctx.GetValue();	return 1.0f/(factor * tail); };
 
-auto var_expr_to_expr = [](auto& ctx)
-	{
-		return std::visit([](auto&& arg) {return SExpression{ arg }; }, ctx.GetValue());
-	};
-auto var_term_to_term = [](auto& ctx)
-	{
-		return std::visit([](auto&& arg) {return STerm{ arg }; }, ctx.GetValue());
-	};
 auto expression_tail_parser = 
 (
-	("+" >> term >> expression_tail) [term_plus_tail]
- | ("-" >> term >> expression_tail)[term_minus_tail]
- | (!aliases::char_any)[on_end_of_string]
-
-)[var_expr_to_expr];
+		("+" >> term >> expression_tail)[action_plus_term_and_tail]
+	| ("-" >> term >> expression_tail)[action_minus_term_and_tail]
+	| ((!ParserLiteralWithContext{"-"}) | (!ParserLiteralWithContext{"="}))[return_default_expr] // if there is no more "+" or "-" return term = 0
+)[action_var_float_to_float];
 
 auto term_tail_parser = 
 (
-	  ("*" >> factor >> term_tail)[term_mult_termtail]
-	| ("/" >> factor >> term_tail)[term_div_termtail]
-	| (!aliases::char_any)[
-		([](auto& ctx) {
-			return STerm{ 1 }; }
-			)
-	]
-)[var_term_to_term];
+	  ("*" >> factor >> term_tail)[action_mult_factor_and_tail]
+	| ("/" >> factor >> term_tail)[action_div_factor_and_tail]
+	| ((!ParserLiteralWithContext{"*"}) | (!ParserLiteralWithContext{"/"}))[return_default_term] // if there is no more "/" or "*" return multiplier = 1
+)[action_var_float_to_float];
 
-auto action_on_expression = [](auto& ctx) { return SExpression{ std::get<0>(ctx.GetValue()).m_value + std::get<1>(ctx.GetValue()).m_value }; };
-auto action_on_term = [](auto& ctx) { 
-	return STerm{ std::get<0>(ctx.GetValue()).m_value * std::get<1>(ctx.GetValue()).m_value }; };
+auto action_on_expression = [](auto& ctx) { const auto& [term, expr_tail] = ctx.GetValue(); return term + expr_tail; };
+auto action_on_term				= [](auto& ctx) { const auto& [fact, term_tail] = ctx.GetValue(); return fact * term_tail; };
 
-//auto parser_term = (factor >> term_tail)[];
 auto parser_expr = (term >> expression_tail)[action_on_expression];
-auto parser_term	= (factor >> term_tail)[action_on_term];
-IMPLEMENT_RULE(factor,			parser_factor);
-IMPLEMENT_RULE(term,			parser_term)
-IMPLEMENT_RULE(term_tail,		term_tail_parser);
-IMPLEMENT_RULE(expression,		parser_expr);
+auto parser_term = (factor >> term_tail)[action_on_term];
+
+IMPLEMENT_RULE(factor,					parser_factor);
+IMPLEMENT_RULE(term,						parser_term)
+IMPLEMENT_RULE(term_tail,				term_tail_parser);
+IMPLEMENT_RULE(expression,			parser_expr);
 IMPLEMENT_RULE(expression_tail, expression_tail_parser);
-
-/*
-
-factor	-> number | ( expr) 
-term	-> term * factor | term / factor
-expr	-> term | term + expr | term - expr
-
-| 
-*/
+ 

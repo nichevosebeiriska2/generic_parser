@@ -106,7 +106,7 @@ public:
 		return ParseImpl(ptr_string, ptr_string_end, context, attribute, std::make_index_sequence<sizeof...(TParsers)>{});
 	}
 
-	auto operator[](auto&& callable)
+	auto operator[](auto&& callable) const
 	{
 		return ParserWithActionNew(*this, callable);
 	}

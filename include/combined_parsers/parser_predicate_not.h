@@ -9,11 +9,11 @@ class ParserPredicateNon
 	TParser m_parser;
 public:
 
-	ParserPredicateNon(const TParser &parser)
+	constexpr ParserPredicateNon(const TParser &parser)
 		: m_parser{parser}
 	{}
 
-	ParserPredicateNon(TParser&& parser)
+	constexpr ParserPredicateNon(TParser&& parser)
 		: m_parser{parser}
 	{}
 
