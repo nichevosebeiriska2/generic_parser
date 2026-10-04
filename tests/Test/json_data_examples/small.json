@@ -1,0 +1,20 @@
+{
+  "name": "Test Document",
+  "version": 1.0,
+  "active": true,
+  "tags": ["json", "test", "parser"],
+  "metadata": {
+    "created": "2026-03-01",
+    "author": "Test User",
+    "rating": 4.5
+  },
+  "settings": {
+    "debug": false,
+    "timeout": 30,
+    "retries": 3
+  },
+  "empty_array": [],
+  "empty_object": {},
+  "null_value": null,
+  "unicode": "Привет, 世界, 🚀"
+}

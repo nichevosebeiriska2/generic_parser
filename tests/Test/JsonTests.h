@@ -132,3 +132,30 @@ TEST(JsonFileParser, ParsesExtraLargeObject) // 34 mb json.
 	auto result = ParseLexeme2(ReadFileToString(filepath), parser_document);
 	EXPECT_EQ(status_getter(result), true);
 }
+
+// more complex json-files with emojis, strings and special symbols
+#include <tuple>
+
+TEST(JsonFileParser, ParsesComplexeSmallObject) // 34 mb json. 
+{
+	auto filepath = GetJsonExamplesPath("small.json");
+	ASSERT_TRUE(fs::exists(filepath)) << "File not found: " << filepath;
+	auto result = ParseLexeme2(ReadFileToString(filepath), parser_document);
+	EXPECT_EQ(status_getter(result), true);
+}
+
+TEST(JsonFileParser, ParsesComplexeMediumObject) // 34 mb json. 
+{
+	auto filepath = GetJsonExamplesPath("medium.json");
+	ASSERT_TRUE(fs::exists(filepath)) << "File not found: " << filepath;
+	auto result = ParseLexeme2(ReadFileToString(filepath), parser_document);
+	EXPECT_EQ(status_getter(result), true);
+}
+
+TEST(JsonFileParser, ParsesComplexeLargeObject) // 34 mb json. 
+{
+	auto filepath = GetJsonExamplesPath("large.json");
+	ASSERT_TRUE(fs::exists(filepath)) << "File not found: " << filepath;
+	auto result = ParseLexeme2(ReadFileToString(filepath), parser_document);
+	EXPECT_EQ(status_getter(result), true);
+}
