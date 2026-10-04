@@ -2,9 +2,9 @@
 
 #include <limits>
 
-#include "common.h"
-#include "Constants.h"
-#include "Context.h"
+#include "common/common.h"
+#include "common/Constants.h"
+#include "base_parser/Context.h"
 
 #include <cctype>
 #include <cwctype>

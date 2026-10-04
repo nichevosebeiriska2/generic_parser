@@ -1,8 +1,8 @@
 #pragma once
 
 #include <variant>
-#include "utils_tuple.h"
-#include "base_parser.h"
+#include "common/utils_tuple.h"
+#include "base_parser/base_parser.h"
 
 
 template<typename ... TParsers>

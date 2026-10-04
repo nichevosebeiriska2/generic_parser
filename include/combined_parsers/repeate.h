@@ -1,6 +1,6 @@
 #pragma once
 
-#include "base_parser.h"
+#include "base_parser/base_parser.h"
 
 template<typename TParser>
 class ParserRepeateNew
@@ -60,7 +60,7 @@ public:
 		{
 		}
 
-
+		attribute.pop_back();
 		if (number_of_repeats == CONST_NUMBER_OF_CHARS_AT_LEAST_ONE)
 			return !attribute.empty();
 		else if (number_of_repeats == CONST_NUMBER_OF_CHARS_ZERO_OR_MORE)

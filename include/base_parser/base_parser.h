@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include "Scanners.h"
-#include "parser_with_action.h"
+#include "Scanner/Scanners.h"
+#include "combined_parsers/parser_with_action.h"
 
 template<typename TScanner>
 class ParserWithContext

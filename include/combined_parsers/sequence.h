@@ -1,7 +1,7 @@
 #pragma once/**/
 
-#include "utils_tuple.h"
-#include "base_parser.h"
+#include "common/utils_tuple.h"
+#include "base_parser/base_parser.h"
 #include "parser_with_action.h"
 
 template<typename ... TParsers>
